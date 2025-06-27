@@ -1,0 +1,8 @@
+# Ignore sensitive config file
+db.php
+
+# Optional: other things you might want to ignore
+*.bak
+*.zip
+.DS_Store
+Thumbs.db
