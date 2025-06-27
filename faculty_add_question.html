@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head><title>Add Question</title></head>
+<body>
+  <h2>Add Question</h2>
+  <form id="questionForm">
+    <input type="number" name="exam_id" placeholder="Exam ID" required><br>
+    <textarea name="question_text" required></textarea><br>
+    <select name="question_type">
+      <option value="multiple_choice">Multiple Choice</option>
+      <option value="true_false">True/False</option>
+    </select><br>
+    <textarea name="correct_answer" required></textarea><br>
+    <input type="hidden" name="created_by" value="2">
+    <button type="submit">Add</button>
+  </form>
+  <script>
+    document.getElementById("questionForm").onsubmit = async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const res = await fetch("api/add_question.php", { method: "POST", body: formData });
+      const result = await res.json();
+      alert(result.message);
+    };
+  </script>
+</body>
+</html>

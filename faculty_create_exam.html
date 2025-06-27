@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head><title>Create Exam</title></head>
+<body>
+  <h2>Create New Exam</h2>
+  <form id="examForm">
+    <input type="text" name="title" placeholder="Exam Title" required><br>
+    <select name="subject_id" required></select><br>
+    <input type="number" name="year_level" placeholder="Year Level" required><br>
+    <input type="hidden" name="created_by" value="2">
+    <button type="submit">Create Exam</button>
+  </form>
+  <script>
+    fetch("api/get_subjects_by_faculty.php?faculty_id=2")
+      .then(res => res.json())
+      .then(data => {
+        const select = document.querySelector("select[name='subject_id']");
+        data.forEach(subj => {
+          const opt = document.createElement("option");
+          opt.value = subj.subject_id;
+          opt.textContent = subj.subject_name;
+          select.appendChild(opt);
+        });
+      });
+    document.getElementById("examForm").onsubmit = async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const res = await fetch("api/create_exam.php", { method: "POST", body: formData });
+      const result = await res.json();
+      alert(result.message);
+    };
+  </script>
+</body>
+</html>

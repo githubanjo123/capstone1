@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Super Admin Dashboard</title>
+  <style>
+  * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #f2f4f7;
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #2f5795;
+  padding-top: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar a {
+  color: white;
+  padding: 15px 20px;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+  background-color: #1e3d70;
+}
+
+.main {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.topbar h2 {
+  color: #333;
+  font-size: 28px;
+}
+
+.topbar button {
+  padding: 10px 20px;
+  background-color: #3b6cb7;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.topbar button:hover {
+  background-color: #3458a2;
+}
+
+.card {
+  background: #fff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.card h3 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.card input,
+.card select,
+.card button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.card select {
+  background-color: white;
+  cursor: pointer;
+}
+
+.card button {
+  background-color: #3b6cb7;
+  color: white;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.card button:hover {
+  background-color: #3458a2;
+}
+
+.card button.cancel-btn {
+  background-color: #6c757d;
+  margin-top: 5px;
+}
+
+.card button.cancel-btn:hover {
+  background-color: #5a6268;
+}
+
+.card button.delete-btn {
+  background-color: #dc3545;
+  padding: 8px 16px;
+  font-size: 14px;
+  margin-left: 10px;
+}
+
+.card button.delete-btn:hover {
+  background-color: #c82333;
+}
+
+.card button.edit-btn {
+  background-color: #28a745;
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.card button.edit-btn:hover {
+  background-color: #218838;
+}
+
+#student_fields {
+  display: block;
+}
+
+#student_fields.hidden {
+  display: none;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  table-layout: fixed; /* Ensures consistent column widths */
+}
+
+th, td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+
+tr:hover {
+  background-color: #f8f9fa;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-buttons button {
+  width: auto;
+  padding: 6px 12px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #333;
+}
+
+.required {
+  color: #dc3545;
+}
+
+.alert {
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  display: none;
+}
+
+.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.alert-error {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #6c757d;
+}
+
+@media (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    padding-top: 15px;
+  }
+
+  .main {
+    padding: 15px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .user-section {
+    margin-bottom: 30px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  .section-header {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .section-header h3 {
+    margin: 0;
+    color: #495057;
+    font-size: 1.1em;
+  }
+
+  .table-container {
+    overflow-x: auto;
+    min-width: 730px !important;
+  }
+
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    table-layout: fixed !important;
+    min-width: 730px !important;
+  }
+
+  .users-table th,
+  .users-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .users-table th:nth-child(1),
+  .users-table td:nth-child(1) {
+    width: 140px !important;
+    min-width: 140px !important;
+    max-width: 140px !important;
+  }
+
+  .users-table th:nth-child(2),
+  .users-table td:nth-child(2) {
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+  }
+
+  .users-table th:nth-child(3),
+  .users-table td:nth-child(3) {
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+  }
+
+  .users-table th:nth-child(4),
+  .users-table td:nth-child(4) {
+    width: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
+  }
+
+  .users-table th:nth-child(5),
+  .users-table td:nth-child(5) {
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+  }
+
+  .users-table th:nth-child(6),
+  .users-table td:nth-child(6) {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+  }
+
+  .users-table th:nth-child(4):last-child,
+  .users-table td:nth-child(4):last-child {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+  }
+
+  .users-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+  }
+
+  .users-table tr:hover {
+    background-color: #f8f9fa;
+  }
+}
+</style>
+</head>
+<body>
+  <div class="sidebar">
+    <a href="#" onclick="showSection('students')" class="active">User Management</a>
+    <a href="#" onclick="showSection('subjects')">Manage Subjects</a>
+    <a href="#" onclick="showSection('assignments')">Subject Assignments</a>
+    <a href="#" onclick="showSection('results')">Results & Reports</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <h2 id="section-title">User Account Management</h2>
+      <button onclick="showAddUserForm()">Add New User</button>
+    </div>
+
+    <!-- Alert Messages -->
+    <div id="alert-success" class="alert alert-success"></div>
+    <div id="alert-error" class="alert alert-error"></div>
+
+   <!-- Users Section -->     
+<div class="card" id="students-section">       
+  <h3>Existing Users</h3>       
+  <div id="users-container">
+    <div class="loading">Loading users...</div>
+  </div>
+</div>
+
+    <!-- Add/Edit User Form -->
+    <div class="card" id="add-user-form" style="display:none">
+      <h3 id="form-title">Add User</h3>
+      <form id="user-form" onsubmit="submitUser(event)">
+        <input type="hidden" id="edit_user_id">
+        
+        <div class="form-group">
+          <label for="student_id">School ID <span class="required">*</span></label>
+          <input type="text" id="student_id" placeholder="Enter School ID" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="student_name">Full Name <span class="required">*</span></label>
+          <input type="text" id="student_name" placeholder="Enter Full Name" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="user_role">Role <span class="required">*</span></label>
+          <select id="user_role" onchange="toggleStudentFields()" required>
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+        
+        <div id="student_fields">
+          <div class="form-group">
+            <label for="student_year">Year Level <span class="required">*</span></label>
+            <input type="number" id="student_year" placeholder="Enter Year Level" min="1" max="4">
+          </div>
+          
+          <div class="form-group">
+            <label for="student_section">Section <span class="required">*</span></label>
+            <input type="text" id="student_section" placeholder="Enter Section">
+          </div>
+        </div>
+        
+        <button type="submit" id="submit-btn">Add User</button>
+        <button type="button" onclick="cancelForm()" class="cancel-btn">Cancel</button>
+      </form>
+    </div>
+
+   <!-- Subjects Section -->
+<div class="card" id="subjects-section" style="display:none">
+  <h3>Manage Subjects</h3>
+  
+  <!-- Add Subject Form -->
+  <div style="margin-bottom: 30px;">
+    <h4>Add New Subject</h4>
+    
+    <div class="form-group">
+      <label for="course_code">Course Code <span class="required">*</span></label>
+      <input type="text" id="course_code" placeholder="Enter Course Code (e.g. IT310)" required>
+    </div>
+
+    <div class="form-group">
+      <label for="descriptive_title">Descriptive Title <span class="required">*</span></label>
+      <input type="text" id="descriptive_title" placeholder="Enter Descriptive Title (e.g. Software Engineering)" required>
+    </div>
+
+    <button onclick="addSubject()">Add Subject</button>
+  </div>
+
+  <!-- Subjects List -->
+  <div>
+    <h4>Existing Subjects</h4>
+    <table id="subjects-table">
+      <thead>
+        <tr>
+          <th>Subject ID</th>
+          <th>Course Code</th>
+          <th>Descriptive Title</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="subjects-list">
+        <tr><td colspan="4" class="loading">Loading subjects...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+    <!-- Assignments Section -->
+    <div class="card" id="assignments-section" style="display:none">
+      <h3>Subject Assignments</h3>
+      
+      <!-- Assignment Form -->
+      <div style="margin-bottom: 30px;">
+        <h4>Assign Subject to Faculty</h4>
+        <div class="form-group">
+          <label for="faculty_select">Select Faculty <span class="required">*</span></label>
+          <select id="faculty_select" required>
+            <option value="">Loading faculty...</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="subject_select">Select Subject <span class="required">*</span></label>
+          <select id="subject_select" required>
+            <option value="">Loading subjects...</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="assign_year">Year Level <span class="required">*</span></label>
+          <input type="number" id="assign_year" placeholder="Enter Year Level" min="1" max="4" required>
+        </div>
+
+        <div class="form-group">
+  <label for="assign_section">Section <span class="required">*</span></label>
+  <input type="text" id="assign_section" placeholder="Enter Section (e.g., A, B)" maxlength="10" required>
+</div>
+
+        
+        <button onclick="assignSubject()">Assign Subject</button>
+      </div>
+
+      <!-- Assignments List -->
+      <div>
+        <h4>Current Assignments</h4>
+        <table id="assignments-table">
+          <thead>
+            <tr>
+              <th>Faculty</th>
+              <th>Subject</th>
+              <th>Year Level</th>
+              <th>Section</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="assignments-list">
+            <tr><td colspan="4" class="loading">Loading assignments...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="card" id="results-section" style="display:none">
+      <h3>Results & Reports</h3>
+      <p>This section will contain exam results and reports functionality.</p>
+    </div>
+  </div>
+
+  <script>
+    // Global variables
+    let currentUsers = [];
+    let currentSubjects = [];
+    let currentAssignments = [];
+
+    // Utility functions
+    function showAlert(message, type = 'success') {
+      const alertId = type === 'success' ? 'alert-success' : 'alert-error';
+      const alertElement = document.getElementById(alertId);
+      
+      // Hide other alerts
+      document.getElementById('alert-success').style.display = 'none';
+      document.getElementById('alert-error').style.display = 'none';
+      
+      // Show current alert
+      alertElement.textContent = message;
+      alertElement.style.display = 'block';
+      
+      // Auto hide after 5 seconds
+      setTimeout(() => {
+        alertElement.style.display = 'none';
+      }, 5000);
+    }
+
+    function showSection(section) {
+      // Hide all sections
+      document.getElementById('students-section').style.display = 'none';
+      document.getElementById('subjects-section').style.display = 'none';
+      document.getElementById('assignments-section').style.display = 'none';
+      document.getElementById('results-section').style.display = 'none';
+      document.getElementById('add-user-form').style.display = 'none';
+
+      // Update active sidebar link
+      const links = document.querySelectorAll('.sidebar a');
+      links.forEach(link => link.classList.remove('active'));
+      event.target.classList.add('active');
+
+      // Show selected section
+      if (section === 'students') {
+        document.getElementById('section-title').innerText = 'User Account Management';
+        document.getElementById('students-section').style.display = 'block';
+        loadUsers();
+      } else if (section === 'subjects') {
+        document.getElementById('section-title').innerText = 'Manage Subjects';
+        document.getElementById('subjects-section').style.display = 'block';
+        loadSubjects();
+      } else if (section === 'assignments') {
+        document.getElementById('section-title').innerText = 'Subject Assignments';
+        document.getElementById('assignments-section').style.display = 'block';
+        loadDropdowns();
+        loadAssignments();
+      } else if (section === 'results') {
+        document.getElementById('section-title').innerText = 'Results & Reports';
+        document.getElementById('results-section').style.display = 'block';
+      }
+    }
+
+    // User Management Functions
+    function toggleStudentFields() {
+      const role = document.getElementById('user_role').value;
+      const studentFields = document.getElementById('student_fields');
+      const formTitle = document.getElementById('form-title');
+      const submitBtn = document.getElementById('submit-btn');
+      const isEditing = document.getElementById('edit_user_id').value !== '';
+      
+      if (role === 'student') {
+        studentFields.style.display = 'block';
+        studentFields.classList.remove('hidden');
+        document.getElementById('student_year').required = true;
+        document.getElementById('student_section').required = true;
+      } else {
+        studentFields.style.display = 'none';
+        studentFields.classList.add('hidden');
+        document.getElementById('student_year').required = false;
+        document.getElementById('student_section').required = false;
+        document.getElementById('student_year').value = '';
+        document.getElementById('student_section').value = '';
+      }
+      
+      // Update form title and button text
+      const roleCapitalized = role.charAt(0).toUpperCase() + role.slice(1);
+      formTitle.innerText = isEditing ? `Edit ${roleCapitalized}` : `Add ${roleCapitalized}`;
+      submitBtn.innerText = isEditing ? `Update ${roleCapitalized}` : `Add ${roleCapitalized}`;
+    }
+
+    function showAddUserForm() {
+      clearAllFields();
+      document.getElementById('user_role').value = 'student';
+      toggleStudentFields();
+      document.getElementById('edit_user_id').value = '';
+      document.getElementById('add-user-form').style.display = 'block';
+      document.getElementById('add-user-form').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelForm() {
+      document.getElementById('add-user-form').style.display = 'none';
+      clearAllFields();
+    }
+
+    function clearAllFields() {
+      document.querySelectorAll('#add-user-form input').forEach(input => {
+        if (input.type !== 'hidden') input.value = '';
+      });
+      document.getElementById('user_role').value = 'student';
+    }
+
+    async function submitUser(event) {
+      event.preventDefault();
+      
+      const userId = document.getElementById('edit_user_id').value;
+      const schoolId = document.getElementById('student_id').value.trim();
+      const fullName = document.getElementById('student_name').value.trim();
+      const role = document.getElementById('user_role').value;
+      const yearLevel = document.getElementById('student_year').value;
+      const section = document.getElementById('student_section').value.trim();
+      
+      // Validation
+      if (!schoolId || !fullName) {
+        showAlert('School ID and Full Name are required', 'error');
+        return;
+      }
+      
+      if (role === 'student' && (!yearLevel || !section)) {
+        showAlert('Year Level and Section are required for students', 'error');
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append('school_id', schoolId);
+      formData.append('full_name', fullName);
+      formData.append('role', role);
+      
+      if (role === 'student') {
+        formData.append('year_level', yearLevel);
+        formData.append('section', section);
+      }
+      
+      if (userId) {
+        formData.append('user_id', userId);
+      }
+
+      try {
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Processing...';
+
+        const res = await fetch(userId ? 'api/update_user.php' : 'api/add_user.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const json = await res.json();
+        
+        if (json.success) {
+          showAlert(json.message, 'success');
+          clearAllFields();
+          document.getElementById('add-user-form').style.display = 'none';
+          loadUsers();
+        } else {
+          showAlert(json.message || 'An error occurred', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error: ' + error.message, 'error');
+      } finally {
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = false;
+        toggleStudentFields(); // Reset button text
+      }
+    }
+
+// The REAL issue is in the editUser function - replace it with this:
+
+function editUser(user) {
+  // Make sure we're getting the user_id correctly
+  console.log('Edit user called with:', user); // Debug line
+  
+  document.getElementById('edit_user_id').value = user.user_id;
+  document.getElementById('student_id').value = user.school_id;
+  document.getElementById('student_name').value = user.full_name;
+  document.getElementById('user_role').value = user.role;
+  document.getElementById('student_year').value = user.year_level || '';
+  document.getElementById('student_section').value = user.section || '';
+  
+  toggleStudentFields();
+  document.getElementById('add-user-form').style.display = 'block';
+  document.getElementById('add-user-form').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function deleteUser(userId, fullName) {
+  console.log("Attempting to delete userId:", userId);
+  if (!confirm(`Are you sure you want to delete user "${fullName}"? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('user_id', userId);
+
+    const res = await fetch('api/delete_user.php', {
+      method: 'POST',
+      body: formData
+    });
+
+    const json = await res.json();
+
+    console.log("Delete response:", json);
+
+    if (json.success) {
+      showAlert(json.message, 'success');
+      loadUsers();
+    } else {
+      showAlert(json.message || 'Failed to delete user', 'error');
+    }
+  } catch (error) {
+    showAlert('Network error: ' + error.message, 'error');
+  }
+}
+
+
+
+// And fix the loadUsers function to properly handle the user data:
+async function loadUsers() {
+  try {
+    const res = await fetch('api/view_all_users.php');
+    const users = await res.json();
+    currentUsers = users;
+    
+    // Clear the container
+    const container = document.getElementById('users-container');
+    container.innerHTML = '';
+
+    if (users.length === 0) {
+      container.innerHTML = '<div class="no-users">No users found.</div>';
+      return;
+    }
+
+    // Separate users by role
+    const faculty = users.filter(user => user.role === 'faculty');
+    const students = users.filter(user => user.role === 'student');
+
+    // Create faculty table
+    if (faculty.length > 0) {
+      createFacultyTable(faculty, container);
+    }
+
+    // Group students by year and section
+    const studentGroups = groupStudentsByYearSection(students);
+    
+    // Create tables for each year-section combination
+    Object.keys(studentGroups).sort().forEach(key => {
+      createStudentTable(key, studentGroups[key], container);
+    });
+
+  } catch (error) {
+    document.getElementById('users-container').innerHTML = '<div class="error">Error loading users</div>';
+    showAlert('Failed to load users: ' + error.message, 'error');
+  }
+}
+
+function groupStudentsByYearSection(students) {
+  const groups = {};
+  
+  students.forEach(student => {
+    const year = student.year_level || 'No Year';
+    const section = student.section || 'No Section';
+    const key = `${year} - ${section}`;
+    
+    if (!groups[key]) {
+      groups[key] = [];
+    }
+    groups[key].push(student);
+  });
+  
+  return groups;
+}
+
+function createFacultyTable(faculty, container) {
+  const section = document.createElement('div');
+  section.className = 'user-section';
+  
+  section.innerHTML = `
+    <div class="section-header">
+      <h3>Faculty Members (${faculty.length})</h3>
+    </div>
+    <div class="table-container">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>School ID</th>
+            <th>Full Name</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="faculty-table-body">
+        </tbody>
+      </table>
+    </div>
+  `;
+  
+  container.appendChild(section);
+  
+  const tbody = document.getElementById('faculty-table-body');
+  populateTable(tbody, faculty, false); // false = don't show year/section columns
+}
+
+function createStudentTable(groupKey, students, container) {
+  const section = document.createElement('div');
+  section.className = 'user-section';
+  
+  section.innerHTML = `
+    <div class="section-header">
+      <h3>${groupKey} (${students.length} students)</h3>
+    </div>
+    <div class="table-container">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>School ID</th>
+            <th>Full Name</th>
+            <th>Role</th>
+            <th>Year Level</th>
+            <th>Section</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody class="student-table-body">
+        </tbody>
+      </table>
+    </div>
+  `;
+  
+  container.appendChild(section);
+  
+  const tbody = section.querySelector('.student-table-body');
+  populateTable(tbody, students, true); // true = show year/section columns
+}
+
+function populateTable(tbody, users, showYearSection) {
+  tbody.innerHTML = '';
+  
+  users.forEach((user, globalIndex) => {
+    // Find the global index in currentUsers array
+    const actualIndex = currentUsers.findIndex(u => u.user_id === user.user_id);
+    
+    const tr = document.createElement('tr');
+    
+    if (showYearSection) {
+      tr.innerHTML = `
+        <td>${user.school_id}</td>
+        <td>${user.full_name}</td>
+        <td><span style="text-transform: capitalize;">${user.role}</span></td>
+        <td>${user.year_level || '-'}</td>
+        <td>${user.section || '-'}</td>
+        <td>
+          <div class="action-buttons">
+            <button onclick='editUserByIndex(${actualIndex})' class="edit-btn">Edit</button>
+            <button onclick='deleteUser("${user.user_id}", "${user.full_name.replace(/'/g, "\\'")}")' class="delete-btn">Delete</button>
+            
+          </div>
+        </td>
+      `;
+    } else {
+      tr.innerHTML = `
+        <td>${user.school_id}</td>
+        <td>${user.full_name}</td>
+        <td><span style="text-transform: capitalize;">${user.role}</span></td>
+        <td>
+          <div class="action-buttons">
+            <button onclick='editUserByIndex(${actualIndex})' class="edit-btn">Edit</button>
+            <button onclick='deleteUser("${user.user_id}", "${user.full_name.replace(/'/g, "\\'")}")' class="delete-btn">Delete</button>
+          </div>
+        </td>
+      `;
+    }
+    
+    tbody.appendChild(tr);
+  });
+}
+
+// Keep your existing helper function
+function editUserByIndex(index) {
+  const user = currentUsers[index];
+  editUser(user);
+}
+
+    // Subject Management Functions
+async function addSubject() {
+  const courseCode = document.getElementById('course_code').value.trim();
+  const descriptiveTitle = document.getElementById('descriptive_title').value.trim();
+
+  if (!courseCode || !descriptiveTitle) {
+    showAlert('Both Course Code and Descriptive Title are required', 'error');
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('course_code', courseCode);
+    formData.append('descriptive_title', descriptiveTitle);
+
+    const res = await fetch('api/add_subject.php', { 
+      method: 'POST', 
+      body: formData 
+    });
+
+    const json = await res.json();
+
+    if (json.status === 'success') {
+      showAlert(json.message, 'success');
+      document.getElementById('course_code').value = '';
+      document.getElementById('descriptive_title').value = '';
+      loadSubjects();
+      loadDropdowns();
+    } else {
+      showAlert(json.message || 'Failed to add subject', 'error');
+    }
+  } catch (error) {
+    showAlert('Network error: ' + error.message, 'error');
+  }
+}
+
+async function loadSubjects() {
+  try {
+    const res = await fetch('api/subject_list.php');
+    const subjects = await res.json();
+    currentSubjects = subjects;
+    const tbody = document.getElementById('subjects-list');
+    tbody.innerHTML = '';
+
+    if (subjects.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="loading">No subjects found.</td></tr>';
+      return;
+    }
+
+    subjects.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${s.subject_id}</td>
+        <td>${s.course_code}</td>
+        <td>${s.descriptive_title}</td>
+        <td>
+          <div class="action-buttons">
+            <button onclick='deleteSubject(${s.subject_id}, "${s.course_code}")' class="delete-btn">Delete</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    document.getElementById('subjects-list').innerHTML = '<tr><td colspan="4" class="loading">Error loading subjects</td></tr>';
+    showAlert('Failed to load subjects: ' + error.message, 'error');
+  }
+}
+
+async function deleteSubject(subjectId, courseCode) {
+  if (!confirm(`Are you sure you want to delete subject "${courseCode}"? This action cannot be undone.`)) {
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('subject_id', subjectId);
+
+    const res = await fetch('api/delete_subject.php', {
+      method: 'POST',
+      body: formData
+    });
+
+    const json = await res.json();
+
+    if (json.success) {
+      showAlert(json.message, 'success');
+      loadSubjects();
+      loadDropdowns();
+    } else {
+      showAlert(json.message || 'Failed to delete subject', 'error');
+    }
+  } catch (error) {
+    showAlert('Network error: ' + error.message, 'error');
+  }
+}
+
+// Assignment Functions
+async function assignSubject() {
+  const facultyId = document.getElementById('faculty_select').value;
+  const subjectId = document.getElementById('subject_select').value;
+  const yearLevel = document.getElementById('assign_year').value;
+  const section = document.getElementById('assign_section').value;
+
+  if (!facultyId || !subjectId || !yearLevel || !section) {
+    showAlert('All fields are required for assignment', 'error');
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('faculty_id', facultyId);
+    formData.append('subject_id', subjectId);
+    formData.append('year_level', yearLevel);
+    formData.append('section', section);
+
+    const res = await fetch('api/assign_subject.php', { 
+      method: 'POST', 
+      body: formData 
+    });
+
+    const json = await res.json();
+
+    if (json.success) {
+      showAlert(json.message, 'success');
+      document.getElementById('assign_year').value = '';
+      document.getElementById('assign_section').value = '';
+      loadAssignments();
+    } else {
+      showAlert(json.message || 'Failed to assign subject', 'error');
+    }
+  } catch (error) {
+    showAlert('Network error: ' + error.message, 'error');
+  }
+}
+
+async function loadDropdowns() {
+  try {
+    const [facultyRes, subjectRes] = await Promise.all([
+      fetch('api/get_faculty_list.php'),
+      fetch('api/subject_list.php')
+    ]);
+
+    const facultyList = await facultyRes.json();
+    const subjectList = await subjectRes.json();
+
+    const facultySelect = document.getElementById('faculty_select');
+    const subjectSelect = document.getElementById('subject_select');
+
+    facultySelect.innerHTML = '<option value="">Select Faculty</option>';
+    subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+
+    facultyList.forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.user_id;
+      opt.textContent = f.full_name;
+      facultySelect.appendChild(opt);
+    });
+
+    subjectList.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.subject_id;
+      opt.textContent = `${s.course_code} - ${s.descriptive_title}`;
+      subjectSelect.appendChild(opt);
+    });
+  } catch (error) {
+    showAlert('Failed to load dropdown data: ' + error.message, 'error');
+  }
+}
+
+async function loadAssignments() {
+  try {
+    const res = await fetch('api/get_subjects_by_faculty.php');
+    const assignments = await res.json();
+    currentAssignments = assignments;
+    const tbody = document.getElementById('assignments-list');
+    tbody.innerHTML = '';
+
+    if (assignments.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="loading">No assignments found.</td></tr>';
+      return;
+    }
+
+    assignments.forEach(a => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${a.faculty_name}</td>
+        <td>${a.course_code} - ${a.descriptive_title}</td>
+        <td>${a.year_level}</td>
+        <td>${a.section}</td>
+        <td>
+          <div class="action-buttons">
+            <button onclick='deleteAssignment(${a.assignment_id}, "${a.faculty_name}", "${a.course_code}")' class="delete-btn">Remove</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    document.getElementById('assignments-list').innerHTML = '<tr><td colspan="5" class="loading">Error loading assignments</td></tr>';
+    showAlert('Failed to load assignments: ' + error.message, 'error');
+  }
+}
+
+async function deleteAssignment(assignmentId, facultyName, courseCode) {
+  if (!confirm(`Are you sure you want to remove subject "${courseCode}" from "${facultyName}"?`)) {
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append('assignment_id', assignmentId);
+
+    const res = await fetch('api/delete_assignment.php', {
+      method: 'POST',
+      body: formData
+    });
+
+    const json = await res.json();
+
+    if (json.success) {
+      showAlert(json.message, 'success');
+      loadAssignments();
+    } else {
+      showAlert(json.message || 'Failed to remove assignment', 'error');
+    }
+  } catch (error) {
+    showAlert('Network error: ' + error.message, 'error');
+  }
+}
+
+
+    // Logout function
+    async function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        try {
+          await fetch('api/logout.php');
+          window.location.href = 'login.html';
+        } catch (error) {
+          showAlert('Logout failed: ' + error.message, 'error');
+        }
+      }
+    }
+
+    // Initialize the application
+    window.onload = () => {
+      loadDropdowns();
+      showSection('students');
+    };
+
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const form = document.getElementById('add-user-form');
+        if (form.style.display !== 'none') {
+          cancelForm();
+        }
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><title>Student Dashboard</title></head>
+<body>
+  <h2>Available Exams</h2>
+  <div id="examList"></div>
+  <script>
+    const studentId = 3;
+    fetch(`api/get_exams.php?student_id=${studentId}`)
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("examList");
+        if (data.length === 0) {
+          container.innerHTML = "No exams available.";
+          return;
+        }
+        container.innerHTML = data.map(e =>
+          `<div>
+            <b>${e.title}</b><br>
+            Subject: ${e.subject_name}<br>
+            <button onclick="startExam(${e.exam_id})">Take Exam</button>
+          </div><hr>`
+        ).join('');
+      });
+    function startExam(examId) {
+      window.location.href = `take_exam.html?exam_id=${examId}&student_id=3`;
+    }
+  </script>
+</body>
+</html>

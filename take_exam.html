@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head><title>Take Exam</title></head>
+<body>
+  <h2>Take Exam</h2>
+  <form id="examForm"></form>
+  <button onclick="submitAnswers()">Submit Exam</button>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const examId = urlParams.get('exam_id');
+    const studentId = urlParams.get('student_id');
+    fetch(`api/get_questions.php?exam_id=${examId}`)
+      .then(res => res.json())
+      .then(data => {
+        const form = document.getElementById("examForm");
+        data.forEach(q => {
+          form.innerHTML += `
+            <div>
+              <b>${q.question_text}</b><br>
+              <textarea name="answer_${q.question_id}" required></textarea><br><br>
+            </div>`;
+        });
+      });
+    async function submitAnswers() {
+      const formData = new FormData();
+      formData.append("exam_id", examId);
+      formData.append("student_id", studentId);
+      document.querySelectorAll("textarea").forEach(field => {
+        formData.append(field.name, field.value);
+      });
+      const res = await fetch("api/submit_exam.php", {
+        method: "POST",
+        body: formData
+      });
+      const result = await res.json();
+      alert(result.message);
+    }
+  </script>
+</body>
+</html>

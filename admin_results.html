@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head><title>Exam Results</title></head>
+<body>
+  <h2>All Exam Results</h2>
+  <div id="results"></div>
+  <script>
+    fetch("api/get_exam_results.php")
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("results");
+        if (data.length === 0) {
+          container.innerHTML = "No results found.";
+          return;
+        }
+        container.innerHTML = data.map(r => `
+          <div>
+            <b>${r.full_name}</b><br>
+            Exam: ${r.title}<br>
+            Score: ${r.score}%<br>
+            Submitted: ${r.datetime_submitted}<br><hr>
+          </div>
+        `).join('');
+      });
+  </script>
+</body>
+</html>

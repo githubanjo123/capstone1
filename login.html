@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <link rel="stylesheet" href="styles.css"> <!-- Make sure this exists -->
+</head>
+<body>
+  <div class="login-container">
+    <img src="logo.png" alt="Logo" style="width: 48px; margin-bottom: 16px;"> <!-- optional logo -->
+    <h2>Account Login</h2>
+    <p>Enter your credentials to access your account.</p>
+
+    <form id="loginForm">
+      <label for="school_id">School ID / Username</label>
+      <input type="text" name="school_id" placeholder="Enter your ID or username" required>
+
+      <label for="password">Password</label>
+      <input type="password" name="password" placeholder="Enter your password" required>
+
+      <button type="submit">⇨ Login</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("loginForm").onsubmit = async function (e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+
+      try {
+        const response = await fetch("api/login.php", {
+          method: "POST",
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error("Network error: " + response.status);
+        }
+
+        const result = await response.json();
+        alert(result.message);
+
+        if (result.status === "success") {
+          if (result.role === "admin") {
+            window.location.href = "admin_dashboard.html";
+          } else if (result.role === "faculty") {
+            window.location.href = "faculty_dashboard.html";
+          } else {
+            window.location.href = "student_dashboard.html";
+          }
+        }
+
+      } catch (error) {
+        console.error("Login error:", error);
+        alert("Login failed: " + error.message);
+      }
+    };
+  </script>
+</body>
+</html>
