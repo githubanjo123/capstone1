@@ -1,39 +1,135 @@
 <!DOCTYPE html>
 <html>
-<head><title>Take Exam</title></head>
-<body>
-  <h2>Take Exam</h2>
-  <form id="examForm"></form>
-  <button onclick="submitAnswers()">Submit Exam</button>
+<head>
+  <title>Take Exam</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8 font-sans">
+  <div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg p-8">
+      <div class="mb-8">
+        <h2 id="examTitle" class="text-3xl font-bold text-gray-800 mb-2">Loading Exam...</h2>
+        <div class="flex justify-between items-center text-sm text-gray-600">
+          <span id="questionCounter">Question 1 of 10</span>
+          <span id="timer" class="font-mono font-medium">Time Remaining: 30:00</span>
+        </div>
+      </div>
+      
+      <div id="questionsContainer" class="space-y-8">
+        <div class="text-center py-8 text-gray-500">
+          Loading questions...
+        </div>
+      </div>
+      
+      <div class="mt-8 flex justify-between">
+        <button id="prevBtn" onclick="prevQuestion()" disabled 
+                class="px-6 py-2 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed">
+          Previous
+        </button>
+        
+        <button id="nextBtn" onclick="nextQuestion()" 
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+          Next
+        </button>
+        
+        <button id="submitBtn" onclick="submitExam()" style="display:none" 
+                class="px-8 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
+          Submit Exam
+        </button>
+      </div>
+    </div>
+  </div>
+  
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const examId = urlParams.get('exam_id');
     const studentId = urlParams.get('student_id');
-    fetch(`api/get_questions.php?exam_id=${examId}`)
+    let questions = [];
+    let currentQuestion = 0;
+    let answers = {};
+    
+    // Load exam and questions
+    fetch(`api/get_exam_questions.php?exam_id=${examId}`)
       .then(res => res.json())
       .then(data => {
-        const form = document.getElementById("examForm");
-        data.forEach(q => {
-          form.innerHTML += `
-            <div>
-              <b>${q.question_text}</b><br>
-              <textarea name="answer_${q.question_id}" required></textarea><br><br>
-            </div>`;
-        });
+        questions = data.questions;
+        document.getElementById('examTitle').textContent = data.exam_title;
+        displayQuestion();
       });
-    async function submitAnswers() {
-      const formData = new FormData();
-      formData.append("exam_id", examId);
-      formData.append("student_id", studentId);
-      document.querySelectorAll("textarea").forEach(field => {
-        formData.append(field.name, field.value);
-      });
-      const res = await fetch("api/submit_exam.php", {
-        method: "POST",
-        body: formData
-      });
-      const result = await res.json();
-      alert(result.message);
+    
+    function displayQuestion() {
+      if (questions.length === 0) return;
+      
+      const question = questions[currentQuestion];
+      const container = document.getElementById('questionsContainer');
+      
+      container.innerHTML = `
+        <div class="question-block">
+          <h3 class="text-xl font-semibold text-gray-800 mb-6">
+            Question ${currentQuestion + 1}: ${question.question_text}
+          </h3>
+          
+          <div class="space-y-4">
+            ${['A', 'B', 'C', 'D'].map(option => `
+              <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input type="radio" name="answer" value="${option}" 
+                       ${answers[question.question_id] === option ? 'checked' : ''}
+                       onchange="saveAnswer(${question.question_id}, '${option}')"
+                       class="mr-4 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                <span class="text-gray-700">${option}. ${question['option_' + option.toLowerCase()]}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      
+      // Update counter
+      document.getElementById('questionCounter').textContent = 
+        `Question ${currentQuestion + 1} of ${questions.length}`;
+      
+      // Update navigation buttons
+      document.getElementById('prevBtn').disabled = currentQuestion === 0;
+      document.getElementById('prevBtn').className = currentQuestion === 0 
+        ? 'px-6 py-2 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed'
+        : 'px-6 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors cursor-pointer';
+      
+      const isLastQuestion = currentQuestion === questions.length - 1;
+      document.getElementById('nextBtn').style.display = isLastQuestion ? 'none' : 'block';
+      document.getElementById('submitBtn').style.display = isLastQuestion ? 'block' : 'none';
+    }
+    
+    function saveAnswer(questionId, answer) {
+      answers[questionId] = answer;
+    }
+    
+    function nextQuestion() {
+      if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        displayQuestion();
+      }
+    }
+    
+    function prevQuestion() {
+      if (currentQuestion > 0) {
+        currentQuestion--;
+        displayQuestion();
+      }
+    }
+    
+    function submitExam() {
+      if (confirm('Are you sure you want to submit your exam? This action cannot be undone.')) {
+        const formData = new FormData();
+        formData.append('exam_id', examId);
+        formData.append('student_id', studentId);
+        formData.append('answers', JSON.stringify(answers));
+        
+        fetch('api/submit_exam.php', { method: 'POST', body: formData })
+          .then(res => res.json())
+          .then(result => {
+            alert(result.message);
+            window.location.href = 'student_dashboard.html';
+          });
+      }
     }
   </script>
 </body>

@@ -1,9 +1,15 @@
 <!DOCTYPE html>
 <html>
-<head><title>Student Dashboard</title></head>
-<body>
-  <h2>Available Exams</h2>
-  <div id="examList"></div>
+<head>
+  <title>Student Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8 font-sans">
+  <div class="max-w-4xl mx-auto">
+    <h2 class="text-3xl font-bold text-gray-800 mb-8">Available Exams</h2>
+    <div id="examList" class="space-y-4"></div>
+  </div>
+  
   <script>
     const studentId = 3;
     fetch(`api/get_exams.php?student_id=${studentId}`)
@@ -11,15 +17,17 @@
       .then(data => {
         const container = document.getElementById("examList");
         if (data.length === 0) {
-          container.innerHTML = "No exams available.";
+          container.innerHTML = '<div class="text-center py-8 text-gray-500 text-lg">No exams available.</div>';
           return;
         }
         container.innerHTML = data.map(e =>
-          `<div>
-            <b>${e.title}</b><br>
-            Subject: ${e.subject_name}<br>
-            <button onclick="startExam(${e.exam_id})">Take Exam</button>
-          </div><hr>`
+          `<div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+            <h3 class="text-xl font-semibold text-gray-800 mb-2">${e.title}</h3>
+            <p class="text-gray-600 mb-4">Subject: <span class="font-medium">${e.subject_name}</span></p>
+            <button onclick="startExam(${e.exam_id})" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+              Take Exam
+            </button>
+          </div>`
         ).join('');
       });
     function startExam(examId) {
