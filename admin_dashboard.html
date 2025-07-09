@@ -8,8 +8,6 @@
       theme: {
         extend: {
           colors: {
-            'sidebar': '#2f5795',
-            'sidebar-hover': '#1e3d70',
             'primary': '#3b6cb7',
             'primary-hover': '#3458a2'
           }
@@ -18,191 +16,241 @@
     }
   </script>
 </head>
-<body class="font-sans bg-gray-100 flex h-screen">
-  <!-- Sidebar -->
-  <div class="w-64 bg-sidebar pt-8 flex flex-col md:w-64 md:pt-8">
-    <a href="#" onclick="showSection('students')" class="text-white px-5 py-4 no-underline font-bold hover:bg-sidebar-hover bg-sidebar-hover">User Management</a>
-    <a href="#" onclick="showSection('subjects')" class="text-white px-5 py-4 no-underline font-bold hover:bg-sidebar-hover">Manage Subjects</a>
-    <a href="#" onclick="showSection('assignments')" class="text-white px-5 py-4 no-underline font-bold hover:bg-sidebar-hover">Subject Assignments</a>
-    <a href="#" onclick="showSection('results')" class="text-white px-5 py-4 no-underline font-bold hover:bg-sidebar-hover">Results & Reports</a>
-    <a href="#" onclick="logout()" class="text-white px-5 py-4 no-underline font-bold hover:bg-sidebar-hover">Logout</a>
+<body class="bg-gray-50 min-h-screen font-sans">
+  <!-- Header -->
+  <div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+        <p class="text-gray-600">Welcome back, Demo Admin</p>
+      </div>
+      <button onclick="logout()" class="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+        </svg>
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="bg-white border-b border-gray-200 px-6">
+    <nav class="flex space-x-8">
+      <button onclick="showSection('users')" class="py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium active-tab">
+        Manage Users
+      </button>
+      <button onclick="showSection('subjects')" class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium tab-btn">
+        Manage Subjects
+      </button>
+      <button onclick="showSection('assignments')" class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium tab-btn">
+        Subject Assignments
+      </button>
+      <button onclick="showSection('reports')" class="py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium tab-btn">
+        Reports
+      </button>
+    </nav>
   </div>
 
   <!-- Main Content -->
-  <div class="flex-1 p-8 overflow-y-auto">
-    <!-- Top Bar -->
-    <div class="flex justify-between items-center mb-8 flex-col md:flex-row gap-4 md:gap-0">
-      <h2 id="section-title" class="text-gray-800 text-3xl font-normal">User Account Management</h2>
-      <button onclick="showAddUserForm()" class="px-5 py-2 bg-primary text-white border-none rounded-lg cursor-pointer font-bold hover:bg-primary-hover transition-colors">Add New User</button>
-    </div>
-
+  <div class="max-w-7xl mx-auto px-6 py-8">
     <!-- Alert Messages -->
-    <div id="alert-success" class="hidden px-3 py-3 mb-5 border border-transparent rounded-lg text-green-800 bg-green-100 border-green-300"></div>
-    <div id="alert-error" class="hidden px-3 py-3 mb-5 border border-transparent rounded-lg text-red-800 bg-red-100 border-red-300"></div>
+    <div id="alert-success" class="hidden mb-6 px-4 py-3 rounded-lg text-green-800 bg-green-100 border border-green-300"></div>
+    <div id="alert-error" class="hidden mb-6 px-4 py-3 rounded-lg text-red-800 bg-red-100 border border-red-300"></div>
 
-   <!-- Users Section -->     
-<div class="bg-white p-8 rounded-2xl shadow-lg mb-8" id="students-section">       
-  <h3 class="mb-5 text-gray-800 text-xl font-medium">Existing Users</h3>       
-  <div id="users-container">
-    <div class="text-center py-5 text-gray-500">Loading users...</div>
-  </div>
-</div>
-
-    <!-- Add/Edit User Form -->
-    <div class="bg-white p-8 rounded-2xl shadow-lg mb-8 hidden" id="add-user-form">
-      <h3 id="form-title" class="mb-5 text-gray-800 text-xl font-medium">Add User</h3>
-      <form id="user-form" onsubmit="submitUser(event)" class="space-y-4">
-        <input type="hidden" id="edit_user_id">
-        
-        <div class="mb-4">
-          <label for="student_id" class="block mb-1 font-semibold text-gray-800">School ID <span class="text-red-600">*</span></label>
-          <input type="text" id="student_id" placeholder="Enter School ID" required 
-                 class="w-full p-3 mt-2 mb-4 border border-gray-300 rounded-lg text-base focus:border-primary focus:outline-none">
+    <!-- Users Section -->
+    <div id="users-section" class="space-y-6">
+      <!-- Add New Users Card -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-2">Add New Users</h2>
+        <p class="text-gray-600 mb-4">Add students and faculty to the system</p>
+        <div class="flex gap-4">
+          <button onclick="showAddUserForm('student')" class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Add Student
+          </button>
+          <button onclick="showAddUserForm('faculty')" class="flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Add Faculty
+          </button>
         </div>
-        
-        <div class="mb-4">
-          <label for="student_name" class="block mb-1 font-semibold text-gray-800">Full Name <span class="text-red-600">*</span></label>
-          <input type="text" id="student_name" placeholder="Enter Full Name" required 
-                 class="w-full p-3 mt-2 mb-4 border border-gray-300 rounded-lg text-base focus:border-primary focus:outline-none">
-        </div>
-        
-        <div class="mb-4">
-          <label for="user_role" class="block mb-1 font-semibold text-gray-800">Role <span class="text-red-600">*</span></label>
-          <select id="user_role" onchange="toggleStudentFields()" required 
-                  class="w-full p-3 mt-2 mb-4 border border-gray-300 rounded-lg text-base bg-white cursor-pointer focus:border-primary focus:outline-none">
-            <option value="student">Student</option>
-            <option value="faculty">Faculty</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-        
-        <div id="student_fields" class="block">
-          <div class="mb-4">
-            <label for="student_year" class="block mb-1 font-semibold text-gray-800">Year Level <span class="text-red-600">*</span></label>
-            <input type="number" id="student_year" placeholder="Enter Year Level" min="1" max="4" 
-                   class="w-full p-3 mt-2 mb-4 border border-gray-300 rounded-lg text-base focus:border-primary focus:outline-none">
-          </div>
-          
-          <div class="mb-4">
-            <label for="student_section" class="block mb-1 font-semibold text-gray-800">Section <span class="text-red-600">*</span></label>
-            <input type="text" id="student_section" placeholder="Enter Section" 
-                   class="w-full p-3 mt-2 mb-4 border border-gray-300 rounded-lg text-base focus:border-primary focus:outline-none">
-          </div>
-        </div>
-        
-        <button type="submit" id="submit-btn" class="w-full p-3 bg-primary text-white border-none rounded-lg font-bold cursor-pointer hover:bg-primary-hover transition-colors">Add User</button>
-        <button type="button" onclick="cancelForm()" class="w-full p-3 bg-gray-500 text-white border-none rounded-lg font-bold cursor-pointer hover:bg-gray-600 transition-colors mt-1">Cancel</button>
-      </form>
-    </div>
-
-   <!-- Subjects Section -->
-<div class="bg-white p-8 rounded-2xl shadow-lg mb-8 hidden" id="subjects-section">
-  <h3 class="mb-5 text-gray-800 text-xl font-medium">Manage Subjects</h3>
-  
-  <!-- Add Subject Form -->
-  <div class="mb-8">
-    <h4 class="text-lg font-medium text-gray-700 mb-4">Add New Subject</h4>
-    
-    <div class="mb-4">
-      <label for="course_code" class="block mb-1 font-semibold text-gray-800">Course Code <span class="text-red-600">*</span></label>
-      <input type="text" id="course_code" placeholder="Enter Course Code (e.g. IT310)" required 
-             class="w-full p-3 mt-2 mb-4 border border-gray-300 rounded-lg text-base focus:border-primary focus:outline-none">
-    </div>
-
-    <div class="mb-4">
-      <label for="descriptive_title" class="block mb-1 font-semibold text-gray-800">Descriptive Title <span class="text-red-600">*</span></label>
-      <input type="text" id="descriptive_title" placeholder="Enter Descriptive Title (e.g. Software Engineering)" required 
-             class="w-full p-3 mt-2 mb-4 border border-gray-300 rounded-lg text-base focus:border-primary focus:outline-none">
-    </div>
-
-    <button onclick="addSubject()" class="w-full p-3 bg-primary text-white border-none rounded-lg font-bold cursor-pointer hover:bg-primary-hover transition-colors">Add Subject</button>
-  </div>
-
-  <!-- Subjects List -->
-  <div>
-    <h4 class="text-lg font-medium text-gray-700 mb-4">Existing Subjects</h4>
-    <div class="overflow-x-auto">
-      <table id="subjects-table" class="w-full border-collapse mt-5">
-        <thead>
-          <tr>
-            <th class="text-left p-3 border-b border-gray-300 bg-gray-50 font-semibold text-gray-600">Subject ID</th>
-            <th class="text-left p-3 border-b border-gray-300 bg-gray-50 font-semibold text-gray-600">Course Code</th>
-            <th class="text-left p-3 border-b border-gray-300 bg-gray-50 font-semibold text-gray-600">Descriptive Title</th>
-            <th class="text-left p-3 border-b border-gray-300 bg-gray-50 font-semibold text-gray-600">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="subjects-list">
-          <tr><td colspan="4" class="text-center py-5 text-gray-500">Loading subjects...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-    <!-- Assignments Section -->
-    <div class="bg-white p-8 rounded-2xl shadow-lg mb-8 hidden" id="assignments-section">
-      <h3 class="mb-5 text-gray-800 text-xl font-medium">Subject Assignments</h3>
-      
-      <!-- Assignment Form -->
-      <div class="mb-8">
-        <h4 class="text-lg font-medium text-gray-700 mb-4">Assign Subject to Faculty</h4>
-        <div class="mb-4">
-          <label for="faculty_select" class="block mb-1 font-semibold text-gray-800">Select Faculty <span class="text-red-600">*</span></label>
-          <select id="faculty_select" required 
-                  class="w-full p-3 mt-2 mb-4 border border-gray-300 rounded-lg text-base bg-white cursor-pointer focus:border-primary focus:outline-none">
-            <option value="">Loading faculty...</option>
-          </select>
-        </div>
-        
-        <div class="mb-4">
-          <label for="subject_select" class="block mb-1 font-semibold text-gray-800">Select Subject <span class="text-red-600">*</span></label>
-          <select id="subject_select" required 
-                  class="w-full p-3 mt-2 mb-4 border border-gray-300 rounded-lg text-base bg-white cursor-pointer focus:border-primary focus:outline-none">
-            <option value="">Loading subjects...</option>
-          </select>
-        </div>
-        
-        <div class="mb-4">
-          <label for="assign_year" class="block mb-1 font-semibold text-gray-800">Year Level <span class="text-red-600">*</span></label>
-          <input type="number" id="assign_year" placeholder="Enter Year Level" min="1" max="4" required 
-                 class="w-full p-3 mt-2 mb-4 border border-gray-300 rounded-lg text-base focus:border-primary focus:outline-none">
-        </div>
-
-        <div class="mb-4">
-          <label for="assign_section" class="block mb-1 font-semibold text-gray-800">Section <span class="text-red-600">*</span></label>
-          <input type="text" id="assign_section" placeholder="Enter Section (e.g., A, B)" maxlength="10" required 
-                 class="w-full p-3 mt-2 mb-4 border border-gray-300 rounded-lg text-base focus:border-primary focus:outline-none">
-        </div>
-
-        <button onclick="assignSubject()" class="w-full p-3 bg-primary text-white border-none rounded-lg font-bold cursor-pointer hover:bg-primary-hover transition-colors">Assign Subject</button>
       </div>
 
-      <!-- Assignments List -->
-      <div>
-        <h4 class="text-lg font-medium text-gray-700 mb-4">Current Assignments</h4>
+      <!-- Students Statistics -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center mb-4">
+          <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+          <h2 class="text-lg font-semibold text-gray-900">Students by Year & Section</h2>
+        </div>
+        <p class="text-gray-600 mb-6">Students organized by their year level and section</p>
+        
+        <!-- Statistics Bar -->
+        <div id="student-stats" class="flex gap-6 mb-6 p-4 bg-gray-50 rounded-lg">
+          <div class="text-sm text-gray-600">Loading statistics...</div>
+        </div>
+
+        <!-- Students List -->
+        <div id="students-container" class="space-y-6">
+          <div class="text-center py-8 text-gray-500">Loading students...</div>
+        </div>
+      </div>
+
+      <!-- Faculty Members -->
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div class="flex items-center mb-4">
+          <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          <h2 class="text-lg font-semibold text-gray-900">Faculty Members</h2>
+        </div>
+        <p class="text-gray-600 mb-6">All faculty members in the system</p>
+        
+        <div id="faculty-container">
+          <div class="text-center py-8 text-gray-500">Loading faculty...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subjects Section -->
+    <div id="subjects-section" class="hidden space-y-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Manage Subjects</h2>
+        
+        <!-- Add Subject Form -->
+        <div class="mb-8 p-4 bg-gray-50 rounded-lg">
+          <h3 class="text-md font-medium text-gray-800 mb-4">Add New Subject</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input type="text" id="course_code" placeholder="Course Code (e.g. IT310)" 
+                   class="px-3 py-2 border border-gray-300 rounded-lg focus:border-primary focus:outline-none">
+            <input type="text" id="descriptive_title" placeholder="Descriptive Title" 
+                   class="px-3 py-2 border border-gray-300 rounded-lg focus:border-primary focus:outline-none">
+            <button onclick="addSubject()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
+              Add Subject
+            </button>
+          </div>
+        </div>
+
+        <!-- Subjects List -->
         <div class="overflow-x-auto">
-          <table id="assignments-table" class="w-full border-collapse mt-5">
+          <table class="w-full">
             <thead>
-              <tr>
-                <th class="text-left p-3 border-b border-gray-300 bg-gray-50 font-semibold text-gray-600">Faculty</th>
-                <th class="text-left p-3 border-b border-gray-300 bg-gray-50 font-semibold text-gray-600">Subject</th>
-                <th class="text-left p-3 border-b border-gray-300 bg-gray-50 font-semibold text-gray-600">Year Level</th>
-                <th class="text-left p-3 border-b border-gray-300 bg-gray-50 font-semibold text-gray-600">Section</th>
-                <th class="text-left p-3 border-b border-gray-300 bg-gray-50 font-semibold text-gray-600">Actions</th>
+              <tr class="border-b border-gray-200">
+                <th class="text-left py-3 px-4 font-medium text-gray-700">Subject ID</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-700">Course Code</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-700">Descriptive Title</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
               </tr>
             </thead>
-            <tbody id="assignments-list">
-              <tr><td colspan="5" class="text-center py-5 text-gray-500">Loading assignments...</td></tr>
+            <tbody id="subjects-list">
+              <tr><td colspan="4" class="text-center py-8 text-gray-500">Loading subjects...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- Results Section -->
-    <div class="bg-white p-8 rounded-2xl shadow-lg mb-8 hidden" id="results-section">
-      <h3 class="mb-5 text-gray-800 text-xl font-medium">Results & Reports</h3>
-      <p class="text-gray-600">This section will contain exam results and reports functionality.</p>
+    <!-- Assignments Section -->
+    <div id="assignments-section" class="hidden space-y-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-6">Subject Assignments</h2>
+        
+        <!-- Assignment Form -->
+        <div class="mb-8 p-4 bg-gray-50 rounded-lg">
+          <h3 class="text-md font-medium text-gray-800 mb-4">Assign Subject to Faculty</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <select id="faculty_select" class="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:border-primary focus:outline-none">
+              <option value="">Select Faculty</option>
+            </select>
+            <select id="subject_select" class="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:border-primary focus:outline-none">
+              <option value="">Select Subject</option>
+            </select>
+            <input type="number" id="assign_year" placeholder="Year Level" min="1" max="4" 
+                   class="px-3 py-2 border border-gray-300 rounded-lg focus:border-primary focus:outline-none">
+            <input type="text" id="assign_section" placeholder="Section" 
+                   class="px-3 py-2 border border-gray-300 rounded-lg focus:border-primary focus:outline-none">
+            <button onclick="assignSubject()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
+              Assign
+            </button>
+          </div>
+        </div>
+
+        <!-- Assignments List -->
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="text-left py-3 px-4 font-medium text-gray-700">Faculty</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-700">Subject</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-700">Year Level</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-700">Section</th>
+                <th class="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="assignments-list">
+              <tr><td colspan="5" class="text-center py-8 text-gray-500">Loading assignments...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Section -->
+    <div id="reports-section" class="hidden space-y-6">
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Reports & Analytics</h2>
+        <p class="text-gray-600">This section will contain exam results and reports functionality.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit User Modal -->
+  <div id="user-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+      <h3 id="modal-title" class="text-lg font-semibold text-gray-900 mb-4">Add User</h3>
+      <form id="user-form" class="space-y-4">
+        <input type="hidden" id="edit_user_id">
+        <input type="hidden" id="user_role_hidden">
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">School ID</label>
+          <input type="text" id="student_id" placeholder="Enter School ID" required 
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-primary focus:outline-none">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+          <input type="text" id="student_name" placeholder="Enter Full Name" required 
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-primary focus:outline-none">
+        </div>
+        
+        <div id="student_fields" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Year Level</label>
+            <input type="number" id="student_year" placeholder="Enter Year Level" min="1" max="4" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-primary focus:outline-none">
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Section</label>
+            <input type="text" id="student_section" placeholder="Enter Section" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:border-primary focus:outline-none">
+          </div>
+        </div>
+        
+        <div class="flex gap-3 pt-4">
+          <button type="submit" id="submit-btn" class="flex-1 bg-primary text-white py-2 rounded-lg hover:bg-primary-hover transition-colors">
+            Add User
+          </button>
+          <button type="button" onclick="closeModal()" class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -217,15 +265,12 @@
       const alertId = type === 'success' ? 'alert-success' : 'alert-error';
       const alertElement = document.getElementById(alertId);
       
-      // Hide other alerts
       document.getElementById('alert-success').classList.add('hidden');
       document.getElementById('alert-error').classList.add('hidden');
       
-      // Show current alert
       alertElement.textContent = message;
       alertElement.classList.remove('hidden');
       
-      // Auto hide after 5 seconds
       setTimeout(() => {
         alertElement.classList.add('hidden');
       }, 5000);
@@ -233,97 +278,69 @@
 
     function showSection(section) {
       // Hide all sections
-      document.getElementById('students-section').classList.add('hidden');
+      document.getElementById('users-section').classList.add('hidden');
       document.getElementById('subjects-section').classList.add('hidden');
       document.getElementById('assignments-section').classList.add('hidden');
-      document.getElementById('results-section').classList.add('hidden');
-      document.getElementById('add-user-form').classList.add('hidden');
+      document.getElementById('reports-section').classList.add('hidden');
 
-      // Update active sidebar link
-      const links = document.querySelectorAll('.w-64 a');
-      links.forEach(link => link.classList.remove('bg-sidebar-hover'));
-      event.target.classList.add('bg-sidebar-hover');
+      // Update tab styles
+      document.querySelectorAll('.tab-btn, .active-tab').forEach(tab => {
+        tab.className = 'py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium tab-btn';
+      });
+      event.target.className = 'py-4 px-1 border-b-2 border-blue-500 text-blue-600 font-medium active-tab';
 
       // Show selected section
-      if (section === 'students') {
-        document.getElementById('section-title').innerText = 'User Account Management';
-        document.getElementById('students-section').classList.remove('hidden');
+      if (section === 'users') {
+        document.getElementById('users-section').classList.remove('hidden');
         loadUsers();
       } else if (section === 'subjects') {
-        document.getElementById('section-title').innerText = 'Manage Subjects';
         document.getElementById('subjects-section').classList.remove('hidden');
         loadSubjects();
       } else if (section === 'assignments') {
-        document.getElementById('section-title').innerText = 'Subject Assignments';
         document.getElementById('assignments-section').classList.remove('hidden');
         loadDropdowns();
         loadAssignments();
-      } else if (section === 'results') {
-        document.getElementById('section-title').innerText = 'Results & Reports';
-        document.getElementById('results-section').classList.remove('hidden');
+      } else if (section === 'reports') {
+        document.getElementById('reports-section').classList.remove('hidden');
       }
     }
 
-    // User Management Functions
-    function toggleStudentFields() {
-      const role = document.getElementById('user_role').value;
-      const studentFields = document.getElementById('student_fields');
-      const formTitle = document.getElementById('form-title');
-      const submitBtn = document.getElementById('submit-btn');
-      const isEditing = document.getElementById('edit_user_id').value !== '';
+    // Modal functions
+    function showAddUserForm(role) {
+      document.getElementById('modal-title').textContent = `Add ${role.charAt(0).toUpperCase() + role.slice(1)}`;
+      document.getElementById('user_role_hidden').value = role;
+      document.getElementById('edit_user_id').value = '';
+      document.getElementById('submit-btn').textContent = `Add ${role.charAt(0).toUpperCase() + role.slice(1)}`;
       
       if (role === 'student') {
-        studentFields.classList.remove('hidden');
-        studentFields.classList.add('block');
+        document.getElementById('student_fields').classList.remove('hidden');
         document.getElementById('student_year').required = true;
         document.getElementById('student_section').required = true;
       } else {
-        studentFields.classList.add('hidden');
-        studentFields.classList.remove('block');
+        document.getElementById('student_fields').classList.add('hidden');
         document.getElementById('student_year').required = false;
         document.getElementById('student_section').required = false;
-        document.getElementById('student_year').value = '';
-        document.getElementById('student_section').value = '';
       }
       
-      // Update form title and button text
-      const roleCapitalized = role.charAt(0).toUpperCase() + role.slice(1);
-      formTitle.innerText = isEditing ? `Edit ${roleCapitalized}` : `Add ${roleCapitalized}`;
-      submitBtn.innerText = isEditing ? `Update ${roleCapitalized}` : `Add ${roleCapitalized}`;
+      document.getElementById('user-modal').classList.remove('hidden');
     }
 
-    function showAddUserForm() {
-      clearAllFields();
-      document.getElementById('user_role').value = 'student';
-      toggleStudentFields();
-      document.getElementById('edit_user_id').value = '';
-      document.getElementById('add-user-form').classList.remove('hidden');
-      document.getElementById('add-user-form').scrollIntoView({ behavior: 'smooth' });
+    function closeModal() {
+      document.getElementById('user-modal').classList.add('hidden');
+      document.getElementById('user-form').reset();
     }
 
-    function cancelForm() {
-      document.getElementById('add-user-form').classList.add('hidden');
-      clearAllFields();
-    }
-
-    function clearAllFields() {
-      document.querySelectorAll('#add-user-form input').forEach(input => {
-        if (input.type !== 'hidden') input.value = '';
-      });
-      document.getElementById('user_role').value = 'student';
-    }
-
+    // User management functions
     async function submitUser(event) {
       event.preventDefault();
       
       const userId = document.getElementById('edit_user_id').value;
       const schoolId = document.getElementById('student_id').value.trim();
       const fullName = document.getElementById('student_name').value.trim();
-      const role = document.getElementById('user_role').value;
+      const role = document.getElementById('user_role_hidden').value;
       const yearLevel = document.getElementById('student_year').value;
       const section = document.getElementById('student_section').value.trim();
       
-      // Validation
       if (!schoolId || !fullName) {
         showAlert('School ID and Full Name are required', 'error');
         return;
@@ -362,8 +379,7 @@
         
         if (json.success) {
           showAlert(json.message, 'success');
-          clearAllFields();
-          document.getElementById('add-user-form').classList.add('hidden');
+          closeModal();
           loadUsers();
         } else {
           showAlert(json.message || 'An error occurred', 'error');
@@ -373,454 +389,427 @@
       } finally {
         const submitBtn = document.getElementById('submit-btn');
         submitBtn.disabled = false;
-        toggleStudentFields(); // Reset button text
+        submitBtn.textContent = document.getElementById('user_role_hidden').value === 'student' ? 'Add Student' : 'Add Faculty';
       }
     }
 
-function editUser(user) {
-  // Make sure we're getting the user_id correctly
-  console.log('Edit user called with:', user); // Debug line
-  
-  document.getElementById('edit_user_id').value = user.user_id;
-  document.getElementById('student_id').value = user.school_id;
-  document.getElementById('student_name').value = user.full_name;
-  document.getElementById('user_role').value = user.role;
-  document.getElementById('student_year').value = user.year_level || '';
-  document.getElementById('student_section').value = user.section || '';
-  
-  toggleStudentFields();
-  document.getElementById('add-user-form').classList.remove('hidden');
-  document.getElementById('add-user-form').scrollIntoView({ behavior: 'smooth' });
-}
-
-async function deleteUser(userId, fullName) {
-  console.log("Attempting to delete userId:", userId);
-  if (!confirm(`Are you sure you want to delete user "${fullName}"? This action cannot be undone.`)) {
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append('user_id', userId);
-
-    const res = await fetch('api/delete_user.php', {
-      method: 'POST',
-      body: formData
-    });
-
-    const json = await res.json();
-
-    console.log("Delete response:", json);
-
-    if (json.success) {
-      showAlert(json.message, 'success');
-      loadUsers();
-    } else {
-      showAlert(json.message || 'Failed to delete user', 'error');
-    }
-  } catch (error) {
-    showAlert('Network error: ' + error.message, 'error');
-  }
-}
-
-// And fix the loadUsers function to properly handle the user data:
-async function loadUsers() {
-  try {
-    const res = await fetch('api/view_all_users.php');
-    const users = await res.json();
-    currentUsers = users;
-    
-    // Clear the container
-    const container = document.getElementById('users-container');
-    container.innerHTML = '';
-
-    if (users.length === 0) {
-      container.innerHTML = '<div class="text-center py-5 text-gray-500">No users found.</div>';
-      return;
+    function editUser(user) {
+      document.getElementById('modal-title').textContent = `Edit ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}`;
+      document.getElementById('edit_user_id').value = user.user_id;
+      document.getElementById('student_id').value = user.school_id;
+      document.getElementById('student_name').value = user.full_name;
+      document.getElementById('user_role_hidden').value = user.role;
+      document.getElementById('student_year').value = user.year_level || '';
+      document.getElementById('student_section').value = user.section || '';
+      document.getElementById('submit-btn').textContent = `Update ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}`;
+      
+      if (user.role === 'student') {
+        document.getElementById('student_fields').classList.remove('hidden');
+        document.getElementById('student_year').required = true;
+        document.getElementById('student_section').required = true;
+      } else {
+        document.getElementById('student_fields').classList.add('hidden');
+        document.getElementById('student_year').required = false;
+        document.getElementById('student_section').required = false;
+      }
+      
+      document.getElementById('user-modal').classList.remove('hidden');
     }
 
-    // Separate users by role
-    const faculty = users.filter(user => user.role === 'faculty');
-    const students = users.filter(user => user.role === 'student');
+    async function deleteUser(userId, fullName) {
+      if (!confirm(`Are you sure you want to delete user "${fullName}"? This action cannot be undone.`)) {
+        return;
+      }
 
-    // Create faculty table
-    if (faculty.length > 0) {
-      createFacultyTable(faculty, container);
+      try {
+        const formData = new FormData();
+        formData.append('user_id', userId);
+
+        const res = await fetch('api/delete_user.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+          showAlert(json.message, 'success');
+          loadUsers();
+        } else {
+          showAlert(json.message || 'Failed to delete user', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error: ' + error.message, 'error');
+      }
     }
 
-    // Group students by year and section
-    const studentGroups = groupStudentsByYearSection(students);
-    
-    // Create tables for each year-section combination
-    Object.keys(studentGroups).sort().forEach(key => {
-      createStudentTable(key, studentGroups[key], container);
-    });
+    async function loadUsers() {
+      try {
+        const res = await fetch('api/view_all_users.php');
+        const users = await res.json();
+        currentUsers = users;
+        
+        // Separate users by role
+        const faculty = users.filter(user => user.role === 'faculty');
+        const students = users.filter(user => user.role === 'student');
 
-  } catch (error) {
-    document.getElementById('users-container').innerHTML = '<div class="text-center py-5 text-red-500">Error loading users</div>';
-    showAlert('Failed to load users: ' + error.message, 'error');
-  }
-}
+        // Update statistics
+        updateStudentStats(students);
+        
+        // Create faculty list
+        createFacultyList(faculty);
 
-function groupStudentsByYearSection(students) {
-  const groups = {};
-  
-  students.forEach(student => {
-    const year = student.year_level || 'No Year';
-    const section = student.section || 'No Section';
-    const key = `${year} - ${section}`;
-    
-    if (!groups[key]) {
-      groups[key] = [];
+        // Group students by year and section
+        const studentGroups = groupStudentsByYearSection(students);
+        createStudentsList(studentGroups);
+
+      } catch (error) {
+        showAlert('Failed to load users: ' + error.message, 'error');
+      }
     }
-    groups[key].push(student);
-  });
-  
-  return groups;
-}
 
-function createFacultyTable(faculty, container) {
-  const section = document.createElement('div');
-  section.className = 'mb-8 bg-white rounded-lg shadow-sm overflow-hidden';
-  
-  section.innerHTML = `
-    <div class="bg-gray-50 px-5 py-4 border-b border-gray-200">
-      <h3 class="m-0 text-gray-600 text-lg font-medium">Faculty Members (${faculty.length})</h3>
-    </div>
-    <div class="overflow-x-auto min-w-full">
-      <table class="users-table w-full border-collapse m-0 table-fixed min-w-full">
-        <thead>
-          <tr>
-            <th class="px-4 py-3 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600 w-36 min-w-max">School ID</th>
-            <th class="px-4 py-3 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600 w-44 min-w-max">Full Name</th>
-            <th class="px-4 py-3 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600 w-20 min-w-max">Role</th>
-            <th class="px-4 py-3 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600 w-40 min-w-max">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="faculty-table-body">
-        </tbody>
-      </table>
-    </div>
-  `;
-  
-  container.appendChild(section);
-  
-  const tbody = document.getElementById('faculty-table-body');
-  populateTable(tbody, faculty, false); // false = don't show year/section columns
-}
+    function updateStudentStats(students) {
+      const stats = {};
+      students.forEach(student => {
+        const key = `${student.year_level || 'N/A'} ${student.section || 'N/A'}`;
+        stats[key] = (stats[key] || 0) + 1;
+      });
 
-function createStudentTable(groupKey, students, container) {
-  const section = document.createElement('div');
-  section.className = 'mb-8 bg-white rounded-lg shadow-sm overflow-hidden';
-  
-  section.innerHTML = `
-    <div class="bg-gray-50 px-5 py-4 border-b border-gray-200">
-      <h3 class="m-0 text-gray-600 text-lg font-medium">${groupKey} (${students.length} students)</h3>
-    </div>
-    <div class="overflow-x-auto min-w-full">
-      <table class="users-table w-full border-collapse m-0 table-fixed min-w-full">
-        <thead>
-          <tr>
-            <th class="px-4 py-3 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600 w-36 min-w-max">School ID</th>
-            <th class="px-4 py-3 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600 w-44 min-w-max">Full Name</th>
-            <th class="px-4 py-3 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600 w-20 min-w-max">Role</th>
-            <th class="px-4 py-3 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600 w-20 min-w-max">Year Level</th>
-            <th class="px-4 py-3 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600 w-20 min-w-max">Section</th>
-            <th class="px-4 py-3 text-left border-b border-gray-200 bg-gray-50 font-semibold text-gray-600 w-40 min-w-max">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="student-table-body">
-        </tbody>
-      </table>
-    </div>
-  `;
-  
-  container.appendChild(section);
-  
-  const tbody = section.querySelector('.student-table-body');
-  populateTable(tbody, students, true); // true = show year/section columns
-}
+      const statsContainer = document.getElementById('student-stats');
+      if (Object.keys(stats).length === 0) {
+        statsContainer.innerHTML = '<div class="text-sm text-gray-600">No students found</div>';
+      } else {
+        statsContainer.innerHTML = Object.entries(stats)
+          .map(([key, count]) => `<div class="text-sm"><span class="font-medium">${key}:</span> <span class="text-gray-600">${count}</span></div>`)
+          .join('');
+      }
+    }
 
-function populateTable(tbody, users, showYearSection) {
-  tbody.innerHTML = '';
-  
-  users.forEach((user, globalIndex) => {
-    // Find the global index in currentUsers array
-    const actualIndex = currentUsers.findIndex(u => u.user_id === user.user_id);
-    
-    const tr = document.createElement('tr');
-    tr.className = 'hover:bg-gray-50';
-    
-    if (showYearSection) {
-      tr.innerHTML = `
-        <td class="px-4 py-3 border-b border-gray-200 overflow-hidden text-ellipsis whitespace-nowrap">${user.school_id}</td>
-        <td class="px-4 py-3 border-b border-gray-200 overflow-hidden text-ellipsis whitespace-nowrap">${user.full_name}</td>
-        <td class="px-4 py-3 border-b border-gray-200 overflow-hidden text-ellipsis whitespace-nowrap"><span class="capitalize">${user.role}</span></td>
-        <td class="px-4 py-3 border-b border-gray-200 overflow-hidden text-ellipsis whitespace-nowrap">${user.year_level || '-'}</td>
-        <td class="px-4 py-3 border-b border-gray-200 overflow-hidden text-ellipsis whitespace-nowrap">${user.section || '-'}</td>
-        <td class="px-4 py-3 border-b border-gray-200">
-          <div class="flex gap-2">
-            <button onclick='editUserByIndex(${actualIndex})' class="px-3 py-1 bg-green-600 text-white border-none rounded text-xs font-medium hover:bg-green-700">Edit</button>
-            <button onclick='deleteUser("${user.user_id}", "${user.full_name.replace(/'/g, "\\'")}")' class="px-3 py-1 bg-red-600 text-white border-none rounded text-xs font-medium hover:bg-red-700">Delete</button>
+    function groupStudentsByYearSection(students) {
+      const groups = {};
+      students.forEach(student => {
+        const year = student.year_level || 'No Year';
+        const section = student.section || 'No Section';
+        const key = `${year} Year - Section ${section}`;
+        if (!groups[key]) {
+          groups[key] = [];
+        }
+        groups[key].push(student);
+      });
+      return groups;
+    }
+
+    function createStudentsList(studentGroups) {
+      const container = document.getElementById('students-container');
+      if (Object.keys(studentGroups).length === 0) {
+        container.innerHTML = '<div class="text-center py-8 text-gray-500">No students found</div>';
+        return;
+      }
+
+      container.innerHTML = Object.entries(studentGroups)
+        .map(([groupName, students]) => `
+          <div class="border-b border-gray-200 pb-4">
+            <div class="flex justify-between items-center mb-3">
+              <h3 class="font-medium text-gray-900">${groupName}</h3>
+              <span class="text-sm text-gray-500">${students.length} students</span>
+            </div>
+            <div class="space-y-2">
+              ${students.map(student => `
+                <div class="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div class="font-medium text-gray-900">${student.full_name}</div>
+                    <div class="text-sm text-gray-500">${student.school_id}</div>
+                    <div class="text-xs text-gray-400">Added on ${new Date(student.created_at || Date.now()).toLocaleDateString()}</div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button onclick="editUser(${JSON.stringify(student).replace(/"/g, '&quot;')})" class="p-1 text-gray-400 hover:text-blue-600">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                    </button>
+                    <button onclick="deleteUser('${student.user_id}', '${student.full_name}')" class="p-1 text-gray-400 hover:text-red-600">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
           </div>
-        </td>
-      `;
-    } else {
-      tr.innerHTML = `
-        <td class="px-4 py-3 border-b border-gray-200 overflow-hidden text-ellipsis whitespace-nowrap">${user.school_id}</td>
-        <td class="px-4 py-3 border-b border-gray-200 overflow-hidden text-ellipsis whitespace-nowrap">${user.full_name}</td>
-        <td class="px-4 py-3 border-b border-gray-200 overflow-hidden text-ellipsis whitespace-nowrap"><span class="capitalize">${user.role}</span></td>
-        <td class="px-4 py-3 border-b border-gray-200">
-          <div class="flex gap-2">
-            <button onclick='editUserByIndex(${actualIndex})' class="px-3 py-1 bg-green-600 text-white border-none rounded text-xs font-medium hover:bg-green-700">Edit</button>
-            <button onclick='deleteUser("${user.user_id}", "${user.full_name.replace(/'/g, "\\'")}")' class="px-3 py-1 bg-red-600 text-white border-none rounded text-xs font-medium hover:bg-red-700">Delete</button>
-          </div>
-        </td>
+        `).join('');
+    }
+
+    function createFacultyList(faculty) {
+      const container = document.getElementById('faculty-container');
+      if (faculty.length === 0) {
+        container.innerHTML = '<div class="text-center py-8 text-gray-500">No faculty members found</div>';
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="space-y-2">
+          ${faculty.map(member => `
+            <div class="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
+              <div>
+                <div class="font-medium text-gray-900">Dr. ${member.full_name}</div>
+                <div class="text-sm text-gray-500">${member.school_id}</div>
+                <div class="text-xs text-gray-400">School ID: ${member.school_id} | FAC: ${member.user_id}</div>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="editUser(${JSON.stringify(member).replace(/"/g, '&quot;')})" class="p-1 text-gray-400 hover:text-blue-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+                <button onclick="deleteUser('${member.user_id}', '${member.full_name}')" class="p-1 text-gray-400 hover:text-red-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
       `;
     }
-    
-    tbody.appendChild(tr);
-  });
-}
-
-// Keep your existing helper function
-function editUserByIndex(index) {
-  const user = currentUsers[index];
-  editUser(user);
-}
 
     // Subject Management Functions
-async function addSubject() {
-  const courseCode = document.getElementById('course_code').value.trim();
-  const descriptiveTitle = document.getElementById('descriptive_title').value.trim();
+    async function addSubject() {
+      const courseCode = document.getElementById('course_code').value.trim();
+      const descriptiveTitle = document.getElementById('descriptive_title').value.trim();
 
-  if (!courseCode || !descriptiveTitle) {
-    showAlert('Both Course Code and Descriptive Title are required', 'error');
-    return;
-  }
+      if (!courseCode || !descriptiveTitle) {
+        showAlert('Both Course Code and Descriptive Title are required', 'error');
+        return;
+      }
 
-  try {
-    const formData = new FormData();
-    formData.append('course_code', courseCode);
-    formData.append('descriptive_title', descriptiveTitle);
+      try {
+        const formData = new FormData();
+        formData.append('course_code', courseCode);
+        formData.append('descriptive_title', descriptiveTitle);
 
-    const res = await fetch('api/add_subject.php', { 
-      method: 'POST', 
-      body: formData 
-    });
+        const res = await fetch('api/add_subject.php', { 
+          method: 'POST', 
+          body: formData 
+        });
 
-    const json = await res.json();
+        const json = await res.json();
 
-    if (json.status === 'success') {
-      showAlert(json.message, 'success');
-      document.getElementById('course_code').value = '';
-      document.getElementById('descriptive_title').value = '';
-      loadSubjects();
-      loadDropdowns();
-    } else {
-      showAlert(json.message || 'Failed to add subject', 'error');
-    }
-  } catch (error) {
-    showAlert('Network error: ' + error.message, 'error');
-  }
-}
-
-async function loadSubjects() {
-  try {
-    const res = await fetch('api/subject_list.php');
-    const subjects = await res.json();
-    currentSubjects = subjects;
-    const tbody = document.getElementById('subjects-list');
-    tbody.innerHTML = '';
-
-    if (subjects.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" class="text-center py-5 text-gray-500">No subjects found.</td></tr>';
-      return;
+        if (json.status === 'success') {
+          showAlert(json.message, 'success');
+          document.getElementById('course_code').value = '';
+          document.getElementById('descriptive_title').value = '';
+          loadSubjects();
+          loadDropdowns();
+        } else {
+          showAlert(json.message || 'Failed to add subject', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error: ' + error.message, 'error');
+      }
     }
 
-    subjects.forEach(s => {
-      const tr = document.createElement('tr');
-      tr.className = 'hover:bg-gray-50';
-      tr.innerHTML = `
-        <td class="p-3 border-b border-gray-300 overflow-hidden text-ellipsis whitespace-nowrap">${s.subject_id}</td>
-        <td class="p-3 border-b border-gray-300 overflow-hidden text-ellipsis whitespace-nowrap">${s.course_code}</td>
-        <td class="p-3 border-b border-gray-300 overflow-hidden text-ellipsis whitespace-nowrap">${s.descriptive_title}</td>
-        <td class="p-3 border-b border-gray-300">
-          <div class="flex gap-2">
-            <button onclick='deleteSubject(${s.subject_id}, "${s.course_code}")' class="px-3 py-1 bg-red-600 text-white border-none rounded text-xs font-medium hover:bg-red-700">Delete</button>
-          </div>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (error) {
-    document.getElementById('subjects-list').innerHTML = '<tr><td colspan="4" class="text-center py-5 text-red-500">Error loading subjects</td></tr>';
-    showAlert('Failed to load subjects: ' + error.message, 'error');
-  }
-}
+    async function loadSubjects() {
+      try {
+        const res = await fetch('api/subject_list.php');
+        const subjects = await res.json();
+        currentSubjects = subjects;
+        const tbody = document.getElementById('subjects-list');
+        tbody.innerHTML = '';
 
-async function deleteSubject(subjectId, courseCode) {
-  if (!confirm(`Are you sure you want to delete subject "${courseCode}"? This action cannot be undone.`)) {
-    return;
-  }
+        if (subjects.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-500">No subjects found.</td></tr>';
+          return;
+        }
 
-  try {
-    const formData = new FormData();
-    formData.append('subject_id', subjectId);
-
-    const res = await fetch('api/delete_subject.php', {
-      method: 'POST',
-      body: formData
-    });
-
-    const json = await res.json();
-
-    if (json.success) {
-      showAlert(json.message, 'success');
-      loadSubjects();
-      loadDropdowns();
-    } else {
-      showAlert(json.message || 'Failed to delete subject', 'error');
-    }
-  } catch (error) {
-    showAlert('Network error: ' + error.message, 'error');
-  }
-}
-
-// Assignment Functions
-async function assignSubject() {
-  const facultyId = document.getElementById('faculty_select').value;
-  const subjectId = document.getElementById('subject_select').value;
-  const yearLevel = document.getElementById('assign_year').value;
-  const section = document.getElementById('assign_section').value;
-
-  if (!facultyId || !subjectId || !yearLevel || !section) {
-    showAlert('All fields are required for assignment', 'error');
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append('faculty_id', facultyId);
-    formData.append('subject_id', subjectId);
-    formData.append('year_level', yearLevel);
-    formData.append('section', section);
-
-    const res = await fetch('api/assign_subject.php', { 
-      method: 'POST', 
-      body: formData 
-    });
-
-    const json = await res.json();
-
-    if (json.success) {
-      showAlert(json.message, 'success');
-      document.getElementById('assign_year').value = '';
-      document.getElementById('assign_section').value = '';
-      loadAssignments();
-    } else {
-      showAlert(json.message || 'Failed to assign subject', 'error');
-    }
-  } catch (error) {
-    showAlert('Network error: ' + error.message, 'error');
-  }
-}
-
-async function loadDropdowns() {
-  try {
-    const [facultyRes, subjectRes] = await Promise.all([
-      fetch('api/get_faculty_list.php'),
-      fetch('api/subject_list.php')
-    ]);
-
-    const facultyList = await facultyRes.json();
-    const subjectList = await subjectRes.json();
-
-    const facultySelect = document.getElementById('faculty_select');
-    const subjectSelect = document.getElementById('subject_select');
-
-    facultySelect.innerHTML = '<option value="">Select Faculty</option>';
-    subjectSelect.innerHTML = '<option value="">Select Subject</option>';
-
-    facultyList.forEach(f => {
-      const opt = document.createElement('option');
-      opt.value = f.user_id;
-      opt.textContent = f.full_name;
-      facultySelect.appendChild(opt);
-    });
-
-    subjectList.forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s.subject_id;
-      opt.textContent = `${s.course_code} - ${s.descriptive_title}`;
-      subjectSelect.appendChild(opt);
-    });
-  } catch (error) {
-    showAlert('Failed to load dropdown data: ' + error.message, 'error');
-  }
-}
-
-async function loadAssignments() {
-  try {
-    const res = await fetch('api/get_subjects_by_faculty.php');
-    const assignments = await res.json();
-    currentAssignments = assignments;
-    const tbody = document.getElementById('assignments-list');
-    tbody.innerHTML = '';
-
-    if (assignments.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-gray-500">No assignments found.</td></tr>';
-      return;
+        subjects.forEach(s => {
+          const tr = document.createElement('tr');
+          tr.className = 'border-b border-gray-100 hover:bg-gray-50';
+          tr.innerHTML = `
+            <td class="py-3 px-4">${s.subject_id}</td>
+            <td class="py-3 px-4 font-medium">${s.course_code}</td>
+            <td class="py-3 px-4">${s.descriptive_title}</td>
+            <td class="py-3 px-4">
+              <button onclick='deleteSubject(${s.subject_id}, "${s.course_code}")' class="text-red-600 hover:text-red-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (error) {
+        document.getElementById('subjects-list').innerHTML = '<tr><td colspan="4" class="text-center py-8 text-red-500">Error loading subjects</td></tr>';
+        showAlert('Failed to load subjects: ' + error.message, 'error');
+      }
     }
 
-    assignments.forEach(a => {
-      const tr = document.createElement('tr');
-      tr.className = 'hover:bg-gray-50';
-      tr.innerHTML = `
-        <td class="p-3 border-b border-gray-300 overflow-hidden text-ellipsis whitespace-nowrap">${a.faculty_name}</td>
-        <td class="p-3 border-b border-gray-300 overflow-hidden text-ellipsis whitespace-nowrap">${a.course_code} - ${a.descriptive_title}</td>
-        <td class="p-3 border-b border-gray-300 overflow-hidden text-ellipsis whitespace-nowrap">${a.year_level}</td>
-        <td class="p-3 border-b border-gray-300 overflow-hidden text-ellipsis whitespace-nowrap">${a.section}</td>
-        <td class="p-3 border-b border-gray-300">
-          <div class="flex gap-2">
-            <button onclick='deleteAssignment(${a.assignment_id}, "${a.faculty_name}", "${a.course_code}")' class="px-3 py-1 bg-red-600 text-white border-none rounded text-xs font-medium hover:bg-red-700">Remove</button>
-          </div>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (error) {
-    document.getElementById('assignments-list').innerHTML = '<tr><td colspan="5" class="text-center py-5 text-red-500">Error loading assignments</td></tr>';
-    showAlert('Failed to load assignments: ' + error.message, 'error');
-  }
-}
+    async function deleteSubject(subjectId, courseCode) {
+      if (!confirm(`Are you sure you want to delete subject "${courseCode}"? This action cannot be undone.`)) {
+        return;
+      }
 
-async function deleteAssignment(assignmentId, facultyName, courseCode) {
-  if (!confirm(`Are you sure you want to remove subject "${courseCode}" from "${facultyName}"?`)) {
-    return;
-  }
+      try {
+        const formData = new FormData();
+        formData.append('subject_id', subjectId);
 
-  try {
-    const formData = new FormData();
-    formData.append('assignment_id', assignmentId);
+        const res = await fetch('api/delete_subject.php', {
+          method: 'POST',
+          body: formData
+        });
 
-    const res = await fetch('api/delete_assignment.php', {
-      method: 'POST',
-      body: formData
-    });
+        const json = await res.json();
 
-    const json = await res.json();
-
-    if (json.success) {
-      showAlert(json.message, 'success');
-      loadAssignments();
-    } else {
-      showAlert(json.message || 'Failed to remove assignment', 'error');
+        if (json.success) {
+          showAlert(json.message, 'success');
+          loadSubjects();
+          loadDropdowns();
+        } else {
+          showAlert(json.message || 'Failed to delete subject', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error: ' + error.message, 'error');
+      }
     }
-  } catch (error) {
-    showAlert('Network error: ' + error.message, 'error');
-  }
-}
+
+    // Assignment Functions
+    async function assignSubject() {
+      const facultyId = document.getElementById('faculty_select').value;
+      const subjectId = document.getElementById('subject_select').value;
+      const yearLevel = document.getElementById('assign_year').value;
+      const section = document.getElementById('assign_section').value;
+
+      if (!facultyId || !subjectId || !yearLevel || !section) {
+        showAlert('All fields are required for assignment', 'error');
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('faculty_id', facultyId);
+        formData.append('subject_id', subjectId);
+        formData.append('year_level', yearLevel);
+        formData.append('section', section);
+
+        const res = await fetch('api/assign_subject.php', { 
+          method: 'POST', 
+          body: formData 
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+          showAlert(json.message, 'success');
+          document.getElementById('assign_year').value = '';
+          document.getElementById('assign_section').value = '';
+          loadAssignments();
+        } else {
+          showAlert(json.message || 'Failed to assign subject', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error: ' + error.message, 'error');
+      }
+    }
+
+    async function loadDropdowns() {
+      try {
+        const [facultyRes, subjectRes] = await Promise.all([
+          fetch('api/get_faculty_list.php'),
+          fetch('api/subject_list.php')
+        ]);
+
+        const facultyList = await facultyRes.json();
+        const subjectList = await subjectRes.json();
+
+        const facultySelect = document.getElementById('faculty_select');
+        const subjectSelect = document.getElementById('subject_select');
+
+        facultySelect.innerHTML = '<option value="">Select Faculty</option>';
+        subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+
+        facultyList.forEach(f => {
+          const opt = document.createElement('option');
+          opt.value = f.user_id;
+          opt.textContent = f.full_name;
+          facultySelect.appendChild(opt);
+        });
+
+        subjectList.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.subject_id;
+          opt.textContent = `${s.course_code} - ${s.descriptive_title}`;
+          subjectSelect.appendChild(opt);
+        });
+      } catch (error) {
+        showAlert('Failed to load dropdown data: ' + error.message, 'error');
+      }
+    }
+
+    async function loadAssignments() {
+      try {
+        const res = await fetch('api/get_subjects_by_faculty.php');
+        const assignments = await res.json();
+        currentAssignments = assignments;
+        const tbody = document.getElementById('assignments-list');
+        tbody.innerHTML = '';
+
+        if (assignments.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">No assignments found.</td></tr>';
+          return;
+        }
+
+        assignments.forEach(a => {
+          const tr = document.createElement('tr');
+          tr.className = 'border-b border-gray-100 hover:bg-gray-50';
+          tr.innerHTML = `
+            <td class="py-3 px-4">${a.faculty_name}</td>
+            <td class="py-3 px-4">${a.course_code} - ${a.descriptive_title}</td>
+            <td class="py-3 px-4">${a.year_level}</td>
+            <td class="py-3 px-4">${a.section}</td>
+            <td class="py-3 px-4">
+              <button onclick='deleteAssignment(${a.assignment_id}, "${a.faculty_name}", "${a.course_code}")' class="text-red-600 hover:text-red-800">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (error) {
+        document.getElementById('assignments-list').innerHTML = '<tr><td colspan="5" class="text-center py-8 text-red-500">Error loading assignments</td></tr>';
+        showAlert('Failed to load assignments: ' + error.message, 'error');
+      }
+    }
+
+    async function deleteAssignment(assignmentId, facultyName, courseCode) {
+      if (!confirm(`Are you sure you want to remove subject "${courseCode}" from "${facultyName}"?`)) {
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('assignment_id', assignmentId);
+
+        const res = await fetch('api/delete_assignment.php', {
+          method: 'POST',
+          body: formData
+        });
+
+        const json = await res.json();
+
+        if (json.success) {
+          showAlert(json.message, 'success');
+          loadAssignments();
+        } else {
+          showAlert(json.message || 'Failed to remove assignment', 'error');
+        }
+      } catch (error) {
+        showAlert('Network error: ' + error.message, 'error');
+      }
+    }
 
     // Logout function
     async function logout() {
@@ -834,19 +823,19 @@ async function deleteAssignment(assignmentId, facultyName, courseCode) {
       }
     }
 
+    // Form submission
+    document.getElementById('user-form').addEventListener('submit', submitUser);
+
     // Initialize the application
     window.onload = () => {
       loadDropdowns();
-      showSection('students');
+      loadUsers();
     };
 
-    // Add keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        const form = document.getElementById('add-user-form');
-        if (!form.classList.contains('hidden')) {
-          cancelForm();
-        }
+    // Close modal when clicking outside
+    document.getElementById('user-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeModal();
       }
     });
   </script>
