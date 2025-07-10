@@ -1,26 +1,20 @@
 <?php
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET');
 
-// Connect to database
-$conn = new mysqli("localhost", "root", "", "capstone");
+require_once 'config.php';
 
-// Check connection
-if ($conn->connect_error) {
-    echo json_encode(["success" => false, "message" => "Database connection failed"]);
-    exit();
+try {
+    // Get all subjects
+    $stmt = $pdo->prepare("SELECT subject_id, course_code, descriptive_title FROM subjects ORDER BY course_code");
+    $stmt->execute();
+    $subjects = $stmt->fetchAll();
+
+    echo json_encode($subjects);
+
+} catch (Exception $e) {
+    error_log("Subject list error: " . $e->getMessage());
+    echo json_encode(['error' => 'Failed to fetch subjects']);
 }
-
-// Query updated subject fields
-$result = $conn->query("SELECT subject_id, course_code, descriptive_title FROM subjects");
-
-$data = [];
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $data[] = $row;
-    }
-}
-
-// Output JSON
-echo json_encode($data);
-$conn->close();
 ?>

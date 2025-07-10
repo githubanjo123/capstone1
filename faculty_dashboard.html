@@ -22,7 +22,7 @@
     <div class="flex justify-between items-center">
       <div>
         <h1 class="text-3xl font-bold text-gray-900">Faculty Dashboard</h1>
-        <p class="text-lg font-medium text-gray-600">Welcome back, Demo Faculty</p>
+        <p id="welcomeMessage" class="text-lg font-medium text-gray-600">Welcome back!</p>
       </div>
       <button onclick="logout()" class="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,6 +85,12 @@
               <label class="block text-sm font-medium text-gray-700 mb-2">Instructions</label>
               <textarea id="exam_instructions" placeholder="Enter exam instructions for students..." rows="4"
                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-primary focus:outline-none text-lg resize-vertical"></textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Time Limit (minutes)</label>
+              <input type="number" id="time_limit" value="60" min="15" max="240" 
+                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-primary focus:outline-none text-lg">
             </div>
           </div>
         </div>
@@ -223,9 +229,36 @@
 
   <script>
     // Global variables
-    let facultyId = 2; // This should come from session
+    let currentUser = null;
     let currentQuestions = [];
     let editingQuestionIndex = -1;
+
+    // Check authentication and load user data
+    async function checkAuth() {
+      try {
+        const response = await fetch('api/check_session.php');
+        const data = await response.json();
+        
+        if (!data.authenticated) {
+          window.location.href = 'login.html';
+          return;
+        }
+        
+        if (data.role !== 'faculty') {
+          showAlert('Access denied. Faculty only.', 'error');
+          setTimeout(() => window.location.href = 'login.html', 2000);
+          return;
+        }
+        
+        currentUser = data;
+        document.getElementById('welcomeMessage').textContent = `Welcome back, ${data.full_name}!`;
+        loadClasses();
+        
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = 'login.html';
+      }
+    }
 
     // Utility functions
     function showAlert(message, type = 'success') {
@@ -246,10 +279,15 @@
     // Load faculty classes
     async function loadClasses() {
       try {
-        const res = await fetch(`api/get_faculty_subjects.php?faculty_id=${facultyId}`);
+        const res = await fetch(`api/get_faculty_subjects.php`);
         const classes = await res.json();
         
         const container = document.getElementById('classes-container');
+        if (classes.error) {
+          container.innerHTML = `<div class="col-span-full text-center py-8 text-red-500 text-lg">${classes.error}</div>`;
+          return;
+        }
+        
         if (classes.length === 0) {
           container.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500 text-lg">No classes assigned yet.</div>';
           return;
@@ -497,6 +535,7 @@
       
       const title = document.getElementById('exam_title').value.trim();
       const instructions = document.getElementById('exam_instructions').value.trim();
+      const timeLimit = document.getElementById('time_limit').value;
       const subjectId = document.getElementById('selected_subject_id').value;
       const yearLevel = document.getElementById('selected_year_level').value;
       const section = document.getElementById('selected_section').value;
@@ -507,7 +546,7 @@
       }
       
       if (currentQuestions.length === 0) {
-        showAlert('At least one question is required', 'error');
+        showAlert('Please add at least one question', 'error');
         return;
       }
       
@@ -515,49 +554,47 @@
         const formData = new FormData();
         formData.append('title', title);
         formData.append('instructions', instructions);
+        formData.append('time_limit', timeLimit);
         formData.append('subject_id', subjectId);
         formData.append('year_level', yearLevel);
         formData.append('section', section);
-        formData.append('created_by', facultyId);
         formData.append('questions', JSON.stringify(currentQuestions));
         
-        const res = await fetch('api/create_exam.php', {
+        const response = await fetch('api/create_exam.php', {
           method: 'POST',
           body: formData
         });
         
-        const result = await res.json();
+        const result = await response.json();
         
         if (result.success) {
-          showAlert('Exam created successfully!');
+          showAlert(result.message, 'success');
           setTimeout(() => {
             backToClasses();
-            loadClasses(); // Refresh the classes to update exam count
+            loadClasses(); // Reload to update exam counts
           }, 2000);
         } else {
           showAlert(result.message || 'Failed to create exam', 'error');
         }
+        
       } catch (error) {
-        showAlert('Network error: ' + error.message, 'error');
+        console.error('Create exam error:', error);
+        showAlert('Failed to create exam. Please try again.', 'error');
       }
     });
 
-    // Logout function
     async function logout() {
-      if (confirm('Are you sure you want to logout?')) {
-        try {
-          await fetch('api/logout.php');
-          window.location.href = 'login.html';
-        } catch (error) {
-          showAlert('Logout failed: ' + error.message, 'error');
-        }
+      try {
+        await fetch('api/logout.php', { method: 'POST' });
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Logout error:', error);
+        window.location.href = 'login.html';
       }
     }
 
-    // Initialize
-    window.onload = () => {
-      loadClasses();
-    };
+    // Initialize on page load
+    checkAuth();
   </script>
 </body>
 </html>

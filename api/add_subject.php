@@ -1,35 +1,49 @@
 <?php
+session_start();
 header('Content-Type: application/json');
-$conn = new mysqli("localhost", "root", "", "capstone");
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST');
 
-// Get POST data
-$course_code = $_POST['course_code'] ?? '';
-$descriptive_title = $_POST['descriptive_title'] ?? '';
+require_once 'config.php';
 
-// Validate input
-if (!$course_code || !$descriptive_title) {
-    echo json_encode(["status" => "fail", "message" => "Both Course Code and Descriptive Title are required"]);
-    exit();
-}
+try {
+    // Check if user is logged in as admin
+    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+        echo json_encode(['status' => 'fail', 'message' => 'Unauthorized']);
+        exit();
+    }
 
-// Check for duplicate course code
-$check = $conn->prepare("SELECT subject_id FROM subjects WHERE course_code = ?");
-$check->bind_param("s", $course_code);
-$check->execute();
-$check->store_result();
+    $course_code = $_POST['course_code'] ?? '';
+    $descriptive_title = $_POST['descriptive_title'] ?? '';
 
-if ($check->num_rows > 0) {
-    echo json_encode(["status" => "fail", "message" => "Course code already exists"]);
-    exit();
-}
+    if (empty($course_code) || empty($descriptive_title)) {
+        echo json_encode(['status' => 'fail', 'message' => 'Course code and descriptive title are required']);
+        exit();
+    }
 
-// Insert into database
-$stmt = $conn->prepare("INSERT INTO subjects (course_code, descriptive_title) VALUES (?, ?)");
-$stmt->bind_param("ss", $course_code, $descriptive_title);
+    // Check if course code already exists
+    $stmt = $pdo->prepare("SELECT course_code FROM subjects WHERE course_code = ?");
+    $stmt->execute([$course_code]);
+    
+    if ($stmt->fetch()) {
+        echo json_encode(['status' => 'fail', 'message' => 'Course code already exists']);
+        exit();
+    }
 
-if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "Subject added successfully"]);
-} else {
-    echo json_encode(["success" => false, "message" => "Database error"]);
+    // Insert new subject
+    $stmt = $pdo->prepare("INSERT INTO subjects (course_code, descriptive_title) VALUES (?, ?)");
+    $stmt->execute([$course_code, $descriptive_title]);
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Subject added successfully'
+    ]);
+
+} catch (Exception $e) {
+    error_log("Add subject error: " . $e->getMessage());
+    echo json_encode([
+        'status' => 'fail',
+        'message' => 'Failed to add subject. Please try again.'
+    ]);
 }
 ?>

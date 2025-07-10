@@ -4,38 +4,58 @@
   <title>Take Exam</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-8 font-sans">
-  <div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-lg shadow-lg p-8">
-      <div class="mb-8">
+<body class="bg-gray-100 min-h-screen font-sans">
+  <!-- Header -->
+  <div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="flex justify-between items-center max-w-6xl mx-auto">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Taking Exam</h1>
+        <p id="examSubject" class="text-sm text-gray-600"></p>
+      </div>
+      <div class="text-right">
+        <div id="timer" class="text-2xl font-mono font-bold text-red-600">Loading...</div>
+        <p class="text-sm text-gray-600">Time Remaining</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-4xl mx-auto px-6 py-8">
+    <div class="bg-white rounded-lg shadow-lg">
+      <!-- Exam Header -->
+      <div class="p-6 border-b border-gray-200">
         <h2 id="examTitle" class="text-3xl font-bold text-gray-800 mb-2">Loading Exam...</h2>
-        <div class="flex justify-between items-center text-sm text-gray-600">
+        <div id="examInstructions" class="text-gray-600 mb-4"></div>
+        <div class="flex items-center text-sm text-gray-500">
           <span id="questionCounter">Question 1 of 10</span>
-          <span id="timer" class="font-mono font-medium">Time Remaining: 30:00</span>
         </div>
       </div>
       
-      <div id="questionsContainer" class="space-y-8">
+      <!-- Questions Container -->
+      <div id="questionsContainer" class="p-6">
         <div class="text-center py-8 text-gray-500">
           Loading questions...
         </div>
       </div>
       
-      <div class="mt-8 flex justify-between">
+      <!-- Navigation -->
+      <div class="p-6 border-t border-gray-200 flex justify-between items-center">
         <button id="prevBtn" onclick="prevQuestion()" disabled 
                 class="px-6 py-2 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed">
           Previous
         </button>
         
-        <button id="nextBtn" onclick="nextQuestion()" 
-                class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
-          Next
-        </button>
-        
-        <button id="submitBtn" onclick="submitExam()" style="display:none" 
-                class="px-8 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
-          Submit Exam
-        </button>
+        <div class="flex space-x-4">
+          <button id="nextBtn" onclick="nextQuestion()" 
+                  class="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+            Next
+          </button>
+          
+          <button id="submitBtn" onclick="submitExam()" style="display:none" 
+                  class="px-8 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
+            Submit Exam
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -43,19 +63,110 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const examId = urlParams.get('exam_id');
-    const studentId = urlParams.get('student_id');
+    
+    let currentUser = null;
+    let examData = null;
     let questions = [];
     let currentQuestion = 0;
     let answers = {};
+    let timeLimit = 0;
+    let timeRemaining = 0;
+    let timerInterval = null;
     
+    // Check authentication
+    async function checkAuth() {
+      try {
+        const response = await fetch('api/check_session.php');
+        const data = await response.json();
+        
+        if (!data.authenticated || data.role !== 'student') {
+          alert('Please log in as a student to take exams.');
+          window.location.href = 'login.html';
+          return;
+        }
+        
+        currentUser = data;
+        loadExam();
+        
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = 'login.html';
+      }
+    }
+
     // Load exam and questions
-    fetch(`api/get_exam_questions.php?exam_id=${examId}`)
-      .then(res => res.json())
-      .then(data => {
+    async function loadExam() {
+      if (!examId) {
+        alert('No exam specified.');
+        window.location.href = 'student_dashboard.html';
+        return;
+      }
+
+      try {
+        const response = await fetch(`api/get_exam_questions.php?exam_id=${examId}`);
+        const data = await response.json();
+        
+        if (data.error) {
+          alert(data.error);
+          window.location.href = 'student_dashboard.html';
+          return;
+        }
+        
+        examData = data;
         questions = data.questions;
+        timeLimit = data.time_limit || 60;
+        timeRemaining = timeLimit * 60; // Convert to seconds
+        
+        // Update UI
         document.getElementById('examTitle').textContent = data.exam_title;
-        displayQuestion();
-      });
+        document.getElementById('examSubject').textContent = `${data.subject_name} (${data.course_code})`;
+        document.getElementById('examInstructions').textContent = data.exam_instructions || 'No specific instructions provided.';
+        
+        if (questions.length > 0) {
+          displayQuestion();
+          startTimer();
+        } else {
+          document.getElementById('questionsContainer').innerHTML = 
+            '<div class="text-center py-8 text-red-500">No questions found for this exam.</div>';
+        }
+        
+      } catch (error) {
+        console.error('Failed to load exam:', error);
+        alert('Failed to load exam. Please try again.');
+        window.location.href = 'student_dashboard.html';
+      }
+    }
+
+    function startTimer() {
+      updateTimerDisplay();
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        updateTimerDisplay();
+        
+        if (timeRemaining <= 0) {
+          clearInterval(timerInterval);
+          alert('Time is up! Your exam will be submitted automatically.');
+          submitExam();
+        }
+      }, 1000);
+    }
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timeRemaining / 60);
+      const seconds = timeRemaining % 60;
+      const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      document.getElementById('timer').textContent = display;
+      
+      // Change color when time is running low
+      const timerElement = document.getElementById('timer');
+      if (timeRemaining < 300) { // Less than 5 minutes
+        timerElement.className = 'text-2xl font-mono font-bold text-red-600';
+      } else if (timeRemaining < 600) { // Less than 10 minutes
+        timerElement.className = 'text-2xl font-mono font-bold text-orange-600';
+      } else {
+        timerElement.className = 'text-2xl font-mono font-bold text-green-600';
+      }
+    }
     
     function displayQuestion() {
       if (questions.length === 0) return;
@@ -63,22 +174,55 @@
       const question = questions[currentQuestion];
       const container = document.getElementById('questionsContainer');
       
+      let optionsHtml = '';
+      
+      if (question.question_type === 'multiple_choice') {
+        optionsHtml = ['A', 'B', 'C', 'D'].map(option => {
+          const optionText = question[`option_${option.toLowerCase()}`];
+          if (!optionText) return '';
+          
+          return `
+            <label class="flex items-start p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+              <input type="radio" name="answer" value="${option}" 
+                     ${answers[question.question_id] === option ? 'checked' : ''}
+                     onchange="saveAnswer(${question.question_id}, '${option}')"
+                     class="mt-1 mr-4 h-4 w-4 text-blue-600 focus:ring-blue-500">
+              <span class="text-gray-700"><strong>${option}.</strong> ${optionText}</span>
+            </label>
+          `;
+        }).filter(html => html).join('');
+      } else if (question.question_type === 'true_false') {
+        optionsHtml = `
+          <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+            <input type="radio" name="answer" value="True" 
+                   ${answers[question.question_id] === 'True' ? 'checked' : ''}
+                   onchange="saveAnswer(${question.question_id}, 'True')"
+                   class="mr-4 h-4 w-4 text-blue-600 focus:ring-blue-500">
+            <span class="text-gray-700">True</span>
+          </label>
+          <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+            <input type="radio" name="answer" value="False" 
+                   ${answers[question.question_id] === 'False' ? 'checked' : ''}
+                   onchange="saveAnswer(${question.question_id}, 'False')"
+                   class="mr-4 h-4 w-4 text-blue-600 focus:ring-blue-500">
+            <span class="text-gray-700">False</span>
+          </label>
+        `;
+      }
+      
       container.innerHTML = `
         <div class="question-block">
-          <h3 class="text-xl font-semibold text-gray-800 mb-6">
-            Question ${currentQuestion + 1}: ${question.question_text}
-          </h3>
+          <div class="flex justify-between items-start mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 flex-1">
+              Question ${currentQuestion + 1}: ${question.question_text}
+            </h3>
+            <span class="ml-4 px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded font-medium">
+              ${question.points} ${question.points === 1 ? 'point' : 'points'}
+            </span>
+          </div>
           
-          <div class="space-y-4">
-            ${['A', 'B', 'C', 'D'].map(option => `
-              <label class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
-                <input type="radio" name="answer" value="${option}" 
-                       ${answers[question.question_id] === option ? 'checked' : ''}
-                       onchange="saveAnswer(${question.question_id}, '${option}')"
-                       class="mr-4 h-4 w-4 text-blue-600 focus:ring-blue-500">
-                <span class="text-gray-700">${option}. ${question['option_' + option.toLowerCase()]}</span>
-              </label>
-            `).join('')}
+          <div class="space-y-3">
+            ${optionsHtml}
           </div>
         </div>
       `;
@@ -88,8 +232,9 @@
         `Question ${currentQuestion + 1} of ${questions.length}`;
       
       // Update navigation buttons
-      document.getElementById('prevBtn').disabled = currentQuestion === 0;
-      document.getElementById('prevBtn').className = currentQuestion === 0 
+      const prevBtn = document.getElementById('prevBtn');
+      prevBtn.disabled = currentQuestion === 0;
+      prevBtn.className = currentQuestion === 0 
         ? 'px-6 py-2 bg-gray-300 text-gray-500 rounded-lg font-medium cursor-not-allowed'
         : 'px-6 py-2 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors cursor-pointer';
       
@@ -116,21 +261,62 @@
       }
     }
     
-    function submitExam() {
-      if (confirm('Are you sure you want to submit your exam? This action cannot be undone.')) {
+    async function submitExam() {
+      const answeredQuestions = Object.keys(answers).length;
+      const totalQuestions = questions.length;
+      
+      if (answeredQuestions < totalQuestions) {
+        const unanswered = totalQuestions - answeredQuestions;
+        if (!confirm(`You have ${unanswered} unanswered question(s). Are you sure you want to submit your exam?`)) {
+          return;
+        }
+      }
+      
+      if (!confirm('Are you sure you want to submit your exam? This action cannot be undone.')) {
+        return;
+      }
+      
+      try {
+        // Stop the timer
+        if (timerInterval) {
+          clearInterval(timerInterval);
+        }
+        
         const formData = new FormData();
         formData.append('exam_id', examId);
-        formData.append('student_id', studentId);
         formData.append('answers', JSON.stringify(answers));
         
-        fetch('api/submit_exam.php', { method: 'POST', body: formData })
-          .then(res => res.json())
-          .then(result => {
-            alert(result.message);
-            window.location.href = 'student_dashboard.html';
-          });
+        const response = await fetch('api/submit_exam.php', { 
+          method: 'POST', 
+          body: formData 
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert(`Exam submitted successfully! Your score: ${result.score}/${result.total_points}`);
+        } else {
+          alert(result.message || 'Failed to submit exam');
+        }
+        
+        window.location.href = 'student_dashboard.html';
+        
+      } catch (error) {
+        console.error('Submit exam error:', error);
+        alert('Failed to submit exam. Please try again.');
       }
     }
+
+    // Prevent page refresh/close during exam
+    window.addEventListener('beforeunload', function (e) {
+      if (questions.length > 0 && timerInterval) {
+        e.preventDefault();
+        e.returnValue = 'Are you sure you want to leave? Your exam progress will be lost.';
+      }
+    });
+
+    // Initialize
+    checkAuth();
   </script>
 </body>
 </html>

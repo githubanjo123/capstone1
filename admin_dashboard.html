@@ -22,7 +22,7 @@
     <div class="flex justify-between items-center">
       <div>
         <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p class="text-lg font-medium text-gray-600">Welcome back, Demo Admin</p>
+        <p id="welcomeMessage" class="text-lg font-medium text-gray-600">Welcome back!</p>
       </div>
       <button onclick="logout()" class="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,9 +279,37 @@
 
   <script>
     // Global variables
+    let currentUser = null;
     let currentUsers = [];
     let currentSubjects = [];
     let currentAssignments = [];
+
+    // Check authentication and load user data
+    async function checkAuth() {
+      try {
+        const response = await fetch('api/check_session.php');
+        const data = await response.json();
+        
+        if (!data.authenticated) {
+          window.location.href = 'login.html';
+          return;
+        }
+        
+        if (data.role !== 'admin') {
+          showAlert('Access denied. Admin only.', 'error');
+          setTimeout(() => window.location.href = 'login.html', 2000);
+          return;
+        }
+        
+        currentUser = data;
+        document.getElementById('welcomeMessage').textContent = `Welcome back, ${data.full_name}!`;
+        loadUsers(); // Load initial section
+        
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        window.location.href = 'login.html';
+      }
+    }
 
     // Utility functions
     function showAlert(message, type = 'success') {
@@ -891,8 +919,7 @@
 
     // Initialize the application
     window.onload = () => {
-      loadDropdowns();
-      loadUsers();
+      checkAuth(); // Call checkAuth on page load
     };
 
     // Close modal when clicking outside

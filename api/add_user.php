@@ -1,47 +1,75 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+session_start();
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST');
 
-// Connect to database
-$conn = new mysqli("localhost", "root", "", "capstone");
+require_once 'config.php';
 
-// Get data from POST
-$school_id = $_POST['school_id'] ?? '';
-$full_name = $_POST['full_name'] ?? '';
-$role = $_POST['role'] ?? '';
-$year_level = !empty($_POST['year_level']) ? (int)$_POST['year_level'] : null;
-$section = !empty($_POST['section']) ? $_POST['section'] : null;
+try {
+    // Check if user is logged in as admin
+    if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
 
-// Validate required fields
-if (!$school_id || !$full_name || !$role) {
-    echo json_encode(["success" => false, "message" => "Missing required fields"]);
-    exit();
-}
+    $school_id = $_POST['school_id'] ?? '';
+    $full_name = $_POST['full_name'] ?? '';
+    $role = $_POST['role'] ?? '';
+    $year_level = $_POST['year_level'] ?? null;
+    $section = $_POST['section'] ?? null;
 
-// Generate default password: [school_id][year_level][section]
-$password_plain = $school_id . $year_level . $section;
+    // Validate required fields
+    if (empty($school_id) || empty($full_name) || empty($role)) {
+        echo json_encode(['success' => false, 'message' => 'School ID, full name, and role are required']);
+        exit();
+    }
 
-// Hash the password for secure storage
-$password_hashed = password_hash($password_plain, PASSWORD_DEFAULT);
+    // Validate role
+    if (!in_array($role, ['admin', 'faculty', 'student'])) {
+        echo json_encode(['success' => false, 'message' => 'Invalid role specified']);
+        exit();
+    }
 
-// If email isn't provided, leave it blank
-$email = "";
+    // For students, year level and section are required
+    if ($role === 'student' && (empty($year_level) || empty($section))) {
+        echo json_encode(['success' => false, 'message' => 'Year level and section are required for students']);
+        exit();
+    }
 
-// Prepare SQL statement
-$query = "INSERT INTO users (school_id, full_name, email, password, role, year_level, section)
-          VALUES (?, ?, ?, ?, ?, ?, ?)";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("sssssis", $school_id, $full_name, $email, $password_hashed, $role, $year_level, $section);
+    // Check if school_id already exists
+    $stmt = $pdo->prepare("SELECT school_id FROM users WHERE school_id = ?");
+    $stmt->execute([$school_id]);
+    
+    if ($stmt->fetch()) {
+        echo json_encode(['success' => false, 'message' => 'School ID already exists']);
+        exit();
+    }
 
-// Execute and respond
-if ($stmt->execute()) {
+    // Set year_level and section to null for non-students
+    if ($role !== 'student') {
+        $year_level = null;
+        $section = null;
+    }
+
+    // Insert new user with default password
+    $stmt = $pdo->prepare("
+        INSERT INTO users (school_id, full_name, password, role, year_level, section) 
+        VALUES (?, ?, 'password123', ?, ?, ?)
+    ");
+    
+    $stmt->execute([$school_id, $full_name, $role, $year_level, $section]);
+
     echo json_encode([
-        "success" => true,
-        "message" => ucfirst($role) . " added successfully.",
-        "default_password" => $password_plain  // For admin viewing only
+        'success' => true,
+        'message' => ucfirst($role) . ' added successfully'
     ]);
-} else {
-    echo json_encode(["success" => false, "message" => "Error adding user: " . $conn->error]);
+
+} catch (Exception $e) {
+    error_log("Add user error: " . $e->getMessage());
+    echo json_encode([
+        'success' => false,
+        'message' => 'Failed to add user. Please try again.'
+    ]);
 }
 ?>
