@@ -25,14 +25,6 @@
         <p class="text-lg font-medium text-gray-600" id="faculty-welcome">Welcome back, Demo Faculty</p>
       </div>
       <div class="flex items-center gap-4">
-        <!-- Faculty Selector (for testing purposes) -->
-        <div class="flex items-center gap-2">
-          <label class="text-sm text-gray-600">Faculty:</label>
-          <select id="faculty-selector" onchange="changeFaculty()" class="px-3 py-1 border border-gray-300 rounded text-sm">
-            <option value="2">Dr. John Smith (ID: 2)</option>
-            <option value="3">Dr. Jane Doe (ID: 3)</option>
-          </select>
-        </div>
         <button onclick="logout()" class="flex items-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
@@ -233,10 +225,10 @@
 
   <script>
     // Global variables
-    let facultyId = 2; // Default faculty ID, can be changed for testing
+    let facultyId = null; // Will be set from session
     let currentQuestions = [];
     let editingQuestionIndex = -1;
-    let debugMode = true; // Enable debugging
+    let debugMode = false; // Disable debugging for production
 
     // Utility functions
     function showAlert(message, type = 'success') {
@@ -261,55 +253,69 @@
       }
     }
 
-    // Load faculty classes with enhanced debugging
+    // Check user session and authenticate
+    async function checkSession() {
+      try {
+        const response = await fetch('api/check_session.php');
+        const session = await response.json();
+        
+        if (!session.loggedIn) {
+          window.location.href = 'login.html';
+          return false;
+        }
+        
+        if (session.role !== 'faculty') {
+          showAlert('Access denied. Faculty role required.', 'error');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
+          return false;
+        }
+        
+        facultyId = session.user_id;
+        document.getElementById('faculty-welcome').textContent = `Welcome back, ${session.full_name}`;
+        
+        return true;
+      } catch (error) {
+        console.error('Session check failed:', error);
+        showAlert('Authentication error. Please login again.', 'error');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 2000);
+        return false;
+      }
+    }
+
+    // Load faculty classes
     async function loadClasses() {
       try {
         debugLog('Loading classes for faculty ID:', facultyId);
         
-        // First try the debug API to get detailed information
-        const debugRes = await fetch(`api/debug_faculty_subjects.php?faculty_id=${facultyId}`);
-        const debugData = await debugRes.json();
+        // Use the production API to get faculty subjects
+        const response = await fetch(`api/get_faculty_subjects.php?faculty_id=${facultyId}`);
+        const data = await response.json();
         
-        debugLog('Debug API response:', debugData);
+        debugLog('API response:', data);
         
-        if (debugData.error) {
-          showAlert('Debug Error: ' + debugData.error, 'error');
-          console.error('Debug data:', debugData.debug);
+        if (data.error) {
+          showAlert('Error: ' + data.error, 'error');
           return;
         }
         
-        // Check if database is properly set up
-        if (debugData.debug.total_faculty_users === 0) {
-          showAlert('No faculty users found in database. Please run setup_database.php first.', 'error');
+        // Check if we got valid data
+        if (!Array.isArray(data)) {
+          showAlert('Invalid response format from server', 'error');
           return;
         }
         
-        if (debugData.debug.total_subjects === 0) {
-          showAlert('No subjects found in database. Please run setup_database.php first.', 'error');
-          return;
-        }
-        
-        if (debugData.debug.total_assignments === 0) {
-          showAlert('No subject assignments found in database. Please run setup_database.php first.', 'error');
-          return;
-        }
-        
-        if (!debugData.debug.faculty_exists) {
-          showAlert(`Faculty with ID ${facultyId} does not exist. Available faculty: ${debugData.debug.faculty_users.map(f => `${f.user_id}: ${f.full_name}`).join(', ')}`, 'error');
-          return;
-        }
-        
-        // Use the subjects from debug response
-        const classes = debugData.subjects;
+        const classes = data;
         
         const container = document.getElementById('classes-container');
         if (!classes || classes.length === 0) {
           container.innerHTML = `
             <div class="col-span-full text-center py-8 text-gray-500 text-lg">
               <p>No classes assigned to this faculty member yet.</p>
-              <p class="text-sm mt-2">Faculty: ${debugData.debug.faculty_data.full_name}</p>
-              <p class="text-sm">Available assignments in database: ${debugData.debug.total_assignments}</p>
-              <button onclick="showDebugInfo()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Show Debug Info</button>
+              <p class="text-sm mt-2">Please contact the administrator to assign subjects.</p>
             </div>
           `;
           return;
@@ -351,67 +357,34 @@
         debugLog('Error loading classes:', error);
         showAlert('Failed to load classes: ' + error.message, 'error');
         
-        // Show fallback message with helpful information
+        // Show fallback message
         const container = document.getElementById('classes-container');
         container.innerHTML = `
           <div class="col-span-full text-center py-8 text-red-500 text-lg">
-            <p>Error loading classes: ${error.message}</p>
-            <p class="text-sm mt-2">Please check:</p>
-            <ul class="text-sm text-left inline-block mt-2">
-              <li>1. Database is running (MySQL)</li>
-              <li>2. Database 'capstone' exists</li>
-              <li>3. Run setup_database.php to initialize data</li>
-              <li>4. Check browser console for details</li>
-            </ul>
+            <p>Failed to load classes</p>
+            <p class="text-sm mt-2">Please try again or contact support if the problem persists.</p>
             <button onclick="loadClasses()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded">Retry</button>
           </div>
         `;
       }
     }
 
-    // Show debug information
-    function showDebugInfo() {
-      fetch(`api/debug_faculty_subjects.php?faculty_id=${facultyId}`)
-        .then(res => res.json())
-        .then(data => {
-          console.log('=== FACULTY DASHBOARD DEBUG INFO ===');
-          console.log('Faculty ID:', facultyId);
-          console.log('Debug Data:', data);
-          alert('Debug information logged to browser console (F12). Check the Console tab.');
-        })
-        .catch(err => {
-          console.error('Debug request failed:', err);
-          alert('Debug request failed. Check browser console for details.');
-        });
-    }
 
-    // Change faculty for testing purposes
-    function changeFaculty() {
-      const selector = document.getElementById('faculty-selector');
-      const selectedId = parseInt(selector.value);
-      facultyId = selectedId;
-      
-      // Update welcome message
-      const facultyNames = {
-        2: 'Dr. John Smith',
-        3: 'Dr. Jane Doe'
-      };
-      
-      const welcomeElement = document.getElementById('faculty-welcome');
-      welcomeElement.textContent = `Welcome back, ${facultyNames[selectedId]}`;
-      
-      debugLog('Faculty changed to:', { id: facultyId, name: facultyNames[selectedId] });
-      
-      // Reload classes for the new faculty
-      loadClasses();
-      
-      // Hide exam creation section if open
-      backToClasses();
-    }
+
+
 
     function getOrdinalSuffix(num) {
+      const remainder10 = num % 10;
+      const remainder100 = num % 100;
+      
+      // Handle special cases (11th, 12th, 13th)
+      if (remainder100 >= 11 && remainder100 <= 13) {
+        return 'th';
+      }
+      
+      // Handle regular cases
       const suffixes = { 1: 'st', 2: 'nd', 3: 'rd' };
-      return suffixes[num] || 'th';
+      return suffixes[remainder10] || 'th';
     }
 
     // Class selection
@@ -677,12 +650,14 @@
     }
 
     // Initialize
-    window.onload = () => {
-      // Set initial faculty name
-      changeFaculty();
+    window.onload = async () => {
+      // Check session and authenticate
+      const sessionValid = await checkSession();
       
-      // Load classes
-      loadClasses();
+      if (sessionValid) {
+        // Load classes after successful authentication
+        loadClasses();
+      }
     };
   </script>
 </body>

@@ -42,8 +42,17 @@ class FacultyDashboard {
   }
 
   getOrdinalSuffix(num) {
+    const remainder10 = num % 10;
+    const remainder100 = num % 100;
+    
+    // Handle special cases (11th, 12th, 13th)
+    if (remainder100 >= 11 && remainder100 <= 13) {
+      return 'th';
+    }
+    
+    // Handle regular cases
     const suffixes = { 1: 'st', 2: 'nd', 3: 'rd' };
-    return suffixes[num] || 'th';
+    return suffixes[remainder10] || 'th';
   }
 
   async loadClasses() {
