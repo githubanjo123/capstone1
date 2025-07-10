@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd"
+         bootstrap="bootstrap.php"
+         executionOrder="depends,defects"
+         requireCoverageMetadata="true"
+         beStrictAboutCoverageMetadata="true"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true">
+    
+    <!-- Test Suites -->
+    <testsuites>
+        <testsuite name="Faculty Dashboard Backend Tests">
+            <directory>backend</directory>
+        </testsuite>
+        <testsuite name="API Tests">
+            <file>backend/GetFacultySubjectsTest.php</file>
+            <file>backend/CreateExamTest.php</file>
+            <file>backend/LogoutTest.php</file>
+        </testsuite>
+        <testsuite name="Integration Tests">
+            <directory>integration</directory>
+        </testsuite>
+    </testsuites>
+
+    <!-- PHP Settings -->
+    <php>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="APP_ENV" value="testing"/>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <ini name="display_errors" value="On"/>
+        <ini name="error_reporting" value="E_ALL"/>
+    </php>
+
+    <!-- Coverage Configuration -->
+    <coverage includeUncoveredFiles="true"
+              processUncoveredFiles="true"
+              ignoreDeprecatedCodeUnits="true"
+              disableCodeCoverageIgnore="true">
+        <include>
+            <directory suffix=".php">../api</directory>
+        </include>
+        <exclude>
+            <directory>../vendor</directory>
+            <file>../api/config.php</file>
+        </exclude>
+        <report>
+            <html outputDirectory="coverage/html"/>
+            <text outputFile="coverage/coverage.txt"/>
+            <clover outputFile="coverage/clover.xml"/>
+        </report>
+    </coverage>
+
+    <!-- Logging -->
+    <logging>
+        <testdoxHtml outputFile="reports/testdox.html"/>
+        <testdoxText outputFile="reports/testdox.txt"/>
+        <junit outputFile="reports/junit.xml"/>
+    </logging>
+
+    <!-- Extensions -->
+    <extensions>
+    </extensions>
+</phpunit>
