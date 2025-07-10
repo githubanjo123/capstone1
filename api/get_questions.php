@@ -1,12 +1,24 @@
 <?php
 header('Content-Type: application/json');
-$conn = new mysqli("localhost", "root", "", "capstone");
-$exam_id = $_GET['exam_id'];
-$sql = "SELECT q.question_id, q.question_text, q.question_type FROM exam_questions eq JOIN questions q ON eq.question_id = q.question_id WHERE eq.exam_id = $exam_id";
-$result = $conn->query($sql);
-$questions = [];
-while ($row = $result->fetch_assoc()) {
-    $questions[] = $row;
+header('Access-Control-Allow-Origin: *');
+
+require_once 'config.php';
+
+$exam_id = $_GET['exam_id'] ?? null;
+
+if (!$exam_id) {
+    echo json_encode(['error' => 'Exam ID is required']);
+    exit;
 }
-echo json_encode($questions);
+
+try {
+    $stmt = $pdo->prepare("SELECT * FROM questions WHERE exam_id = ? ORDER BY question_order, question_id");
+    $stmt->execute([$exam_id]);
+    $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    echo json_encode($questions);
+} catch (PDOException $e) {
+    error_log("Database error in get_questions.php: " . $e->getMessage());
+    echo json_encode(['error' => 'Database error occurred']);
+}
 ?>

@@ -1,15 +1,14 @@
 <?php
-header('Content-Type: application/json');
-$conn = new mysqli("localhost", "root", "", "capstone");
+require_once 'config.php';
 
-$sql = "SELECT u.full_name AS faculty_name, s.subject_name, fs.year_level
-        FROM faculty_subjects fs
-        JOIN users u ON fs.faculty_id = u.user_id
-        JOIN subjects s ON fs.subject_id = s.subject_id";
-$result = $conn->query($sql);
-
-$data = [];
-while ($row = $result->fetch_assoc()) {
-    $data[] = $row;
+try {
+    $stmt = $pdo->prepare("SELECT user_id, school_id, full_name FROM users WHERE role = 'faculty' AND (is_deleted = 0 OR is_deleted IS NULL) ORDER BY full_name");
+    $stmt->execute();
+    $faculty = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    echo json_encode($faculty);
+} catch (PDOException $e) {
+    error_log("Database error in view_faculty_subjects.php: " . $e->getMessage());
+    echo json_encode(['error' => 'Database error occurred']);
 }
-echo json_encode($data);
+?>

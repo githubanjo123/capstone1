@@ -1,13 +1,15 @@
 <?php
-header('Content-Type: application/json');
-$conn = new mysqli("localhost", "root", "", "capstone");
+require_once 'config.php';
 
-$result = $conn->query("SELECT user_id, full_name FROM users WHERE role = 'faculty' AND is_deleted = 0");
-
-$data = [];
-while ($row = $result->fetch_assoc()) {
-    $data[] = $row;
+try {
+    $stmt = $pdo->prepare("SELECT user_id, school_id, full_name FROM users WHERE role = 'faculty' AND (is_deleted = 0 OR is_deleted IS NULL) ORDER BY full_name");
+    $stmt->execute();
+    $faculty = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    header('Content-Type: application/json');
+    echo json_encode($faculty);
+} catch (PDOException $e) {
+    error_log("Database error in get_faculty_list.php: " . $e->getMessage());
+    echo json_encode(['error' => 'Database error occurred']);
 }
-
-echo json_encode($data);
 ?>

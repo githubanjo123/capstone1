@@ -1,16 +1,32 @@
 <?php
-session_start();
 header('Content-Type: application/json');
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    echo json_encode(["status" => "fail", "message" => "Unauthorized"]);
-    exit();
+header('Access-Control-Allow-Origin: *');
+
+require_once 'config.php';
+
+try {
+    $stmt = $pdo->prepare("
+        SELECT 
+            ea.attempt_id,
+            ea.exam_id,
+            ea.score,
+            ea.total_points,
+            ea.submitted_at,
+            u.full_name as student_name,
+            u.school_id,
+            e.title as exam_title
+        FROM exam_attempts ea
+        JOIN users u ON ea.student_id = u.user_id
+        JOIN exams e ON ea.exam_id = e.exam_id
+        WHERE ea.status = 'submitted'
+        ORDER BY ea.submitted_at DESC
+    ");
+    $stmt->execute();
+    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    echo json_encode($results);
+} catch (PDOException $e) {
+    error_log("Database error in get_exam_results.php: " . $e->getMessage());
+    echo json_encode(['error' => 'Database error occurred']);
 }
-$conn = new mysqli("localhost", "root", "", "capstone");
-$sql = "SELECT u.full_name, e.title, et.score, et.datetime_submitted FROM exam_taken et JOIN users u ON et.student_id = u.user_id JOIN exams e ON et.exam_id = e.exam_id ORDER BY et.datetime_submitted DESC";
-$result = $conn->query($sql);
-$data = [];
-while ($row = $result->fetch_assoc()) {
-  $data[] = $row;
-}
-echo json_encode($data);
 ?>

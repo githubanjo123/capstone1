@@ -1,35 +1,34 @@
 <?php
 header('Content-Type: application/json');
-$conn = new mysqli("localhost", "root", "", "capstone");
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-// Get POST data
-$course_code = $_POST['course_code'] ?? '';
-$descriptive_title = $_POST['descriptive_title'] ?? '';
+require_once 'config.php';
 
-// Validate input
-if (!$course_code || !$descriptive_title) {
-    echo json_encode(["status" => "fail", "message" => "Both Course Code and Descriptive Title are required"]);
-    exit();
-}
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $course_code = $_POST['course_code'] ?? '';
+    $descriptive_title = $_POST['descriptive_title'] ?? '';
 
-// Check for duplicate course code
-$check = $conn->prepare("SELECT subject_id FROM subjects WHERE course_code = ?");
-$check->bind_param("s", $course_code);
-$check->execute();
-$check->store_result();
+    if (empty($course_code) || empty($descriptive_title)) {
+        echo json_encode(['success' => false, 'message' => 'Course code and descriptive title are required']);
+        exit;
+    }
 
-if ($check->num_rows > 0) {
-    echo json_encode(["status" => "fail", "message" => "Course code already exists"]);
-    exit();
-}
-
-// Insert into database
-$stmt = $conn->prepare("INSERT INTO subjects (course_code, descriptive_title) VALUES (?, ?)");
-$stmt->bind_param("ss", $course_code, $descriptive_title);
-
-if ($stmt->execute()) {
-    echo json_encode(["success" => true, "message" => "Subject added successfully"]);
+    try {
+        $stmt = $pdo->prepare("INSERT INTO subjects (course_code, descriptive_title) VALUES (?, ?)");
+        $stmt->execute([$course_code, $descriptive_title]);
+        
+        echo json_encode(['success' => true, 'message' => 'Subject added successfully']);
+    } catch (PDOException $e) {
+        if ($e->getCode() == 23000) { // Duplicate entry
+            echo json_encode(['success' => false, 'message' => 'Course code already exists']);
+        } else {
+            error_log("Database error in add_subject.php: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Database error occurred']);
+        }
+    }
 } else {
-    echo json_encode(["success" => false, "message" => "Database error"]);
+    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
 }
 ?>

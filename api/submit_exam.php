@@ -1,45 +1,78 @@
 <?php
 header('Content-Type: application/json');
-$conn = new mysqli("localhost", "root", "", "capstone");
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-$exam_id = $_POST['exam_id'];
-$student_id = $_POST['student_id'];
-$total_score = 0;
-$max_score = 0;
+require_once 'config.php';
 
-$conn->query("INSERT INTO exam_taken (exam_id, student_id, datetime_started, datetime_submitted) VALUES ($exam_id, $student_id, NOW(), NOW())");
-$take_id = $conn->insert_id;
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $exam_id = $_POST['exam_id'] ?? null;
+    $student_id = $_POST['student_id'] ?? null;
+    $answers = $_POST['answers'] ?? [];
 
-$answers_map = [];
-$res = $conn->query("SELECT q.question_id, q.correct_answer, q.question_type FROM exam_questions eq JOIN questions q ON eq.question_id = q.question_id WHERE eq.exam_id = $exam_id");
-while ($row = $res->fetch_assoc()) {
-  $answers_map[$row['question_id']] = [
-    "correct" => strtolower(trim($row['correct_answer'])),
-    "type" => $row['question_type']
-  ];
-}
-
-foreach ($_POST as $key => $value) {
-  if (strpos($key, "answer_") === 0) {
-    $question_id = str_replace("answer_", "", $key);
-    $answer_text = strtolower(trim($value));
-    $stmt = $conn->prepare("INSERT INTO exam_answers (take_id, question_id, answer_text) VALUES (?, ?, ?)");
-    $stmt->bind_param("iis", $take_id, $question_id, $value);
-    $stmt->execute();
-
-    $max_score += 1;
-    if (isset($answers_map[$question_id])) {
-      $correct = $answers_map[$question_id]['correct'];
-      $type = $answers_map[$question_id]['type'];
-      if (in_array($type, ['multiple_choice', 'true_false']) && $correct === $answer_text) {
-        $total_score += 1;
-      }
+    if (!$exam_id || !$student_id) {
+        echo json_encode(['success' => false, 'message' => 'Exam ID and Student ID are required']);
+        exit;
     }
-  }
+
+    try {
+        $pdo->beginTransaction();
+
+        // Create or update exam attempt
+        $stmt = $pdo->prepare("INSERT INTO exam_attempts (exam_id, student_id, submitted_at, status) VALUES (?, ?, NOW(), 'submitted') ON DUPLICATE KEY UPDATE submitted_at = NOW(), status = 'submitted'");
+        $stmt->execute([$exam_id, $student_id]);
+
+        // Get attempt ID
+        $attempt_id = $pdo->lastInsertId();
+        if (!$attempt_id) {
+            $stmt = $pdo->prepare("SELECT attempt_id FROM exam_attempts WHERE exam_id = ? AND student_id = ?");
+            $stmt->execute([$exam_id, $student_id]);
+            $attempt_id = $stmt->fetchColumn();
+        }
+
+        // Process answers
+        $score = 0;
+        $total_points = 0;
+
+        foreach ($answers as $question_id => $answer) {
+            // Get correct answer and points
+            $stmt = $pdo->prepare("SELECT correct_answer, points FROM questions WHERE question_id = ?");
+            $stmt->execute([$question_id]);
+            $question = $stmt->fetch();
+
+            if ($question) {
+                $is_correct = ($answer == $question['correct_answer']);
+                $points_earned = $is_correct ? $question['points'] : 0;
+                $score += $points_earned;
+                $total_points += $question['points'];
+
+                // Save student answer
+                $stmt = $pdo->prepare("INSERT INTO student_answers (attempt_id, question_id, student_answer, is_correct, points_earned) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE student_answer = ?, is_correct = ?, points_earned = ?");
+                $stmt->execute([$attempt_id, $question_id, $answer, $is_correct, $points_earned, $answer, $is_correct, $points_earned]);
+            }
+        }
+
+        // Update attempt with final score
+        $stmt = $pdo->prepare("UPDATE exam_attempts SET score = ?, total_points = ?, status = 'graded' WHERE attempt_id = ?");
+        $stmt->execute([$score, $total_points, $attempt_id]);
+
+        $pdo->commit();
+
+        echo json_encode([
+            'success' => true, 
+            'message' => 'Exam submitted successfully',
+            'score' => $score,
+            'total_points' => $total_points,
+            'percentage' => $total_points > 0 ? round(($score / $total_points) * 100, 2) : 0
+        ]);
+
+    } catch (PDOException $e) {
+        $pdo->rollback();
+        error_log("Database error in submit_exam.php: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Database error occurred']);
+    }
+} else {
+    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
 }
-
-$score = ($max_score > 0) ? ($total_score / $max_score) * 100 : 0;
-$conn->query("UPDATE exam_taken SET score = $score WHERE take_id = $take_id");
-
-echo json_encode(["status" => "success", "message" => "Exam submitted. Score: $score"]);
 ?>

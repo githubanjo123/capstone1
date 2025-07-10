@@ -6,7 +6,7 @@
 
 // Database configuration
 $host = 'localhost';
-$dbname = 'capstone';
+$dbname = 'capstone1';
 $username = 'root';
 $password = '';
 

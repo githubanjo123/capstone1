@@ -1,86 +1,58 @@
 <?php
 header('Content-Type: application/json');
-session_start();
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-// Check admin access
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
-    exit;
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
 }
 
-// Database connection
-$host = 'localhost';
-$dbname = 'capstone';
-$username = 'root';
-$password = '';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
-    exit;
-}
+require_once 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    echo json_encode(['success' => false, 'message' => 'Only POST method allowed']);
     exit;
-}
-
-// Get input data
-$user_id = trim($_POST['user_id'] ?? '');
-$school_id = trim($_POST['school_id'] ?? '');
-$full_name = trim($_POST['full_name'] ?? '');
-$role = trim($_POST['role'] ?? '');
-$year_level = trim($_POST['year_level'] ?? '') ?: null;
-$section = trim($_POST['section'] ?? '') ?: null;
-
-// Validate required fields
-if (!$user_id || !$school_id || !$full_name || !in_array($role, ['student', 'faculty', 'admin'])) {
-    echo json_encode(['success' => false, 'message' => 'Required fields missing or invalid role']);
-    exit;
-}
-
-// Student validation
-if ($role === 'student' && (!$year_level || $year_level < 1 || $year_level > 4 || !$section)) {
-    echo json_encode(['success' => false, 'message' => 'Year level (1-4) and section required for students']);
-    exit;
-}
-
-// Set null for non-students
-if ($role !== 'student') {
-    $year_level = null;
-    $section = null;
 }
 
 try {
-    // Check if user exists
-    $checkStmt = $pdo->prepare("SELECT user_id FROM users WHERE user_id = ?");
-    $checkStmt->execute([$user_id]);
-    if (!$checkStmt->fetch()) {
-        echo json_encode(['success' => false, 'message' => 'User not found']);
+    $user_id = $_POST['user_id'] ?? null;
+    $full_name = $_POST['full_name'] ?? '';
+    $school_id = $_POST['school_id'] ?? '';
+    $role = $_POST['role'] ?? '';
+    $year_level = $_POST['year_level'] ?? null;
+    $section = $_POST['section'] ?? null;
+
+    if (!$user_id) {
+        echo json_encode(['success' => false, 'message' => 'User ID is required']);
         exit;
     }
-    
-    // Check duplicate school_id
-    $duplicateStmt = $pdo->prepare("SELECT user_id FROM users WHERE school_id = ? AND user_id != ?");
-    $duplicateStmt->execute([$school_id, $user_id]);
-    if ($duplicateStmt->fetch()) {
-        echo json_encode(['success' => false, 'message' => 'School ID already exists']);
+
+    // Validate required fields
+    if (empty($full_name) || empty($school_id) || empty($role)) {
+        echo json_encode(['success' => false, 'message' => 'Full name, school ID, and role are required']);
         exit;
     }
-    
+
     // Update user
-    $updateStmt = $pdo->prepare("UPDATE users SET school_id = ?, full_name = ?, role = ?, year_level = ?, section = ? WHERE user_id = ?");
-    $result = $updateStmt->execute([$school_id, $full_name, $role, $year_level, $section, $user_id]);
-    
-    if ($result) {
+    $stmt = $pdo->prepare("UPDATE users SET full_name = ?, school_id = ?, role = ?, year_level = ?, section = ?, updated_at = NOW() WHERE user_id = ?");
+    $stmt->execute([$full_name, $school_id, $role, $year_level, $section, $user_id]);
+
+    if ($stmt->rowCount() > 0) {
         echo json_encode(['success' => true, 'message' => 'User updated successfully']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to update user']);
+        echo json_encode(['success' => false, 'message' => 'No changes made or user not found']);
     }
-    
+
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Database error occurred']);
+    if ($e->getCode() == 23000) { // Duplicate entry
+        echo json_encode(['success' => false, 'message' => 'School ID already exists']);
+    } else {
+        error_log("Database error in update_user.php: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Database error occurred']);
+    }
+} catch (Exception $e) {
+    error_log("General error in update_user.php: " . $e->getMessage());
+    echo json_encode(['success' => false, 'message' => 'An error occurred']);
 }
 ?>

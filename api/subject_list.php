@@ -1,26 +1,17 @@
 <?php
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
 
-// Connect to database
-$conn = new mysqli("localhost", "root", "", "capstone");
+require_once 'config.php';
 
-// Check connection
-if ($conn->connect_error) {
-    echo json_encode(["success" => false, "message" => "Database connection failed"]);
-    exit();
+try {
+    $stmt = $pdo->prepare("SELECT subject_id, course_code, descriptive_title FROM subjects ORDER BY course_code");
+    $stmt->execute();
+    $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    echo json_encode($subjects);
+} catch (PDOException $e) {
+    error_log("Database error in subject_list.php: " . $e->getMessage());
+    echo json_encode(['error' => 'Database error occurred']);
 }
-
-// Query updated subject fields
-$result = $conn->query("SELECT subject_id, course_code, descriptive_title FROM subjects");
-
-$data = [];
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $data[] = $row;
-    }
-}
-
-// Output JSON
-echo json_encode($data);
-$conn->close();
 ?>

@@ -1,38 +1,36 @@
 <?php
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
 
-// 1. Connect to DB
-$conn = new mysqli("localhost", "root", "", "capstone");
+require_once 'config.php';
 
-if ($conn->connect_error) {
-    echo json_encode(['error' => 'Database connection failed']);
-    exit();
+$faculty_id = $_GET['faculty_id'] ?? null;
+
+if (!$faculty_id) {
+    echo json_encode(['error' => 'Faculty ID is required']);
+    exit;
 }
 
-// 2. Join faculty_subjects, users (faculty), and subjects
-$sql = "
-SELECT 
-    fs.id AS assignment_id,            -- assignment ID
-    u.full_name AS faculty_name,       -- faculty name
-    s.course_code,                     -- subject course number (e.g., IT310)
-    s.descriptive_title,               -- subject full title
-    fs.year_level,                     -- year level
-    fs.section                         -- section
-FROM faculty_subjects fs
-JOIN users u ON fs.faculty_id = u.user_id
-JOIN subjects s ON fs.subject_id = s.subject_id
-ORDER BY u.full_name ASC, fs.year_level ASC, fs.section ASC
-";
-
-$result = $conn->query($sql);
-$data = [];
-
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $data[] = $row;
-    }
+try {
+    $stmt = $pdo->prepare("
+        SELECT 
+            sa.assignment_id,
+            sa.subject_id,
+            sa.year_level,
+            sa.section,
+            s.course_code,
+            s.descriptive_title
+        FROM subject_assignments sa
+        JOIN subjects s ON sa.subject_id = s.subject_id
+        WHERE sa.faculty_id = ?
+        ORDER BY s.course_code, sa.year_level, sa.section
+    ");
+    $stmt->execute([$faculty_id]);
+    $subjects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    echo json_encode($subjects);
+} catch (PDOException $e) {
+    error_log("Database error in get_subjects_by_faculty.php: " . $e->getMessage());
+    echo json_encode(['error' => 'Database error occurred']);
 }
-
-echo json_encode($data);
-$conn->close();
 ?>
