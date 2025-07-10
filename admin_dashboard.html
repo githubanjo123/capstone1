@@ -303,7 +303,9 @@
         
         currentUser = data;
         document.getElementById('welcomeMessage').textContent = `Welcome back, ${data.full_name}!`;
-        loadUsers(); // Load initial section
+        
+        // Load users by default (first tab)
+        loadUsers();
         
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -349,8 +351,10 @@
         loadSubjects();
       } else if (section === 'assignments') {
         document.getElementById('assignments-section').classList.remove('hidden');
-        loadDropdowns();
-        loadAssignments();
+        // Load both dropdowns and assignments
+        Promise.all([loadDropdowns(), loadAssignments()]).catch(error => {
+          console.error('Error loading assignments section:', error);
+        });
       } else if (section === 'reports') {
         document.getElementById('reports-section').classList.remove('hidden');
       }
@@ -497,12 +501,30 @@
     async function loadUsers() {
       try {
         const res = await fetch('api/view_all_users.php');
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
         const users = await res.json();
+        
+        // Check if the response contains an error
+        if (users.error) {
+          throw new Error(users.error);
+        }
+        
+        // Ensure users is an array
+        if (!Array.isArray(users)) {
+          throw new Error('Invalid response format');
+        }
+        
         currentUsers = users;
         
         // Separate users by role
         const faculty = users.filter(user => user.role === 'faculty');
         const students = users.filter(user => user.role === 'student');
+
+        console.log('Loaded users:', { total: users.length, faculty: faculty.length, students: students.length });
 
         // Update statistics
         updateStudentStats(students);
@@ -515,7 +537,14 @@
         createStudentsList(studentGroups);
 
       } catch (error) {
+        console.error('Load users error:', error);
         showAlert('Failed to load users: ' + error.message, 'error');
+        
+        // Show error message in containers
+        document.getElementById('students-container').innerHTML = 
+          '<div class="text-center py-8 text-red-500 text-lg">Error loading students: ' + error.message + '</div>';
+        document.getElementById('faculty-container').innerHTML = 
+          '<div class="text-center py-8 text-red-500 text-lg">Error loading faculty: ' + error.message + '</div>';
       }
     }
 
@@ -811,8 +840,23 @@
           fetch('api/subject_list.php')
         ]);
 
+        if (!facultyRes.ok) {
+          throw new Error(`Faculty API error: ${facultyRes.status}`);
+        }
+        if (!subjectRes.ok) {
+          throw new Error(`Subject API error: ${subjectRes.status}`);
+        }
+
         const facultyList = await facultyRes.json();
         const subjectList = await subjectRes.json();
+
+        // Check for errors in responses
+        if (facultyList.error) {
+          throw new Error('Faculty list: ' + facultyList.error);
+        }
+        if (subjectList.error) {
+          throw new Error('Subject list: ' + subjectList.error);
+        }
 
         const facultySelect = document.getElementById('faculty_select');
         const subjectSelect = document.getElementById('subject_select');
@@ -820,20 +864,29 @@
         facultySelect.innerHTML = '<option value="">Select Faculty</option>';
         subjectSelect.innerHTML = '<option value="">Select Subject</option>';
 
-        facultyList.forEach(f => {
-          const opt = document.createElement('option');
-          opt.value = f.user_id;
-          opt.textContent = f.full_name;
-          facultySelect.appendChild(opt);
-        });
+        // Ensure arrays
+        if (Array.isArray(facultyList)) {
+          facultyList.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f.user_id;
+            opt.textContent = f.full_name;
+            facultySelect.appendChild(opt);
+          });
+        }
 
-        subjectList.forEach(s => {
-          const opt = document.createElement('option');
-          opt.value = s.subject_id;
-          opt.textContent = `${s.course_code} - ${s.descriptive_title}`;
-          subjectSelect.appendChild(opt);
-        });
+        if (Array.isArray(subjectList)) {
+          subjectList.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.subject_id;
+            opt.textContent = `${s.course_code} - ${s.descriptive_title}`;
+            subjectSelect.appendChild(opt);
+          });
+        }
+
+        console.log('Loaded dropdowns:', { faculty: facultyList.length, subjects: subjectList.length });
+        
       } catch (error) {
+        console.error('Load dropdowns error:', error);
         showAlert('Failed to load dropdown data: ' + error.message, 'error');
       }
     }

@@ -1,38 +1,34 @@
 <?php
+session_start();
 header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET');
 
-// 1. Connect to DB
-$conn = new mysqli("localhost", "root", "", "capstone");
+require_once 'config.php';
 
-if ($conn->connect_error) {
-    echo json_encode(['error' => 'Database connection failed']);
-    exit();
+try {
+    // Get all subject assignments with faculty and subject details
+    $stmt = $pdo->prepare("
+        SELECT 
+            sa.assignment_id,
+            u.full_name AS faculty_name,
+            s.course_code,
+            s.descriptive_title,
+            sa.year_level,
+            sa.section
+        FROM subject_assignments sa
+        JOIN users u ON sa.faculty_id = u.user_id
+        JOIN subjects s ON sa.subject_id = s.subject_id
+        ORDER BY u.full_name ASC, sa.year_level ASC, sa.section ASC
+    ");
+    
+    $stmt->execute();
+    $assignments = $stmt->fetchAll();
+
+    echo json_encode($assignments);
+
+} catch (Exception $e) {
+    error_log("Get subjects by faculty error: " . $e->getMessage());
+    echo json_encode(['error' => 'Failed to fetch assignments']);
 }
-
-// 2. Join faculty_subjects, users (faculty), and subjects
-$sql = "
-SELECT 
-    fs.id AS assignment_id,            -- assignment ID
-    u.full_name AS faculty_name,       -- faculty name
-    s.course_code,                     -- subject course number (e.g., IT310)
-    s.descriptive_title,               -- subject full title
-    fs.year_level,                     -- year level
-    fs.section                         -- section
-FROM faculty_subjects fs
-JOIN users u ON fs.faculty_id = u.user_id
-JOIN subjects s ON fs.subject_id = s.subject_id
-ORDER BY u.full_name ASC, fs.year_level ASC, fs.section ASC
-";
-
-$result = $conn->query($sql);
-$data = [];
-
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $data[] = $row;
-    }
-}
-
-echo json_encode($data);
-$conn->close();
 ?>
