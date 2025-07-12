@@ -2,7 +2,19 @@
 session_start();
 
 // Check if user is logged in
-if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'faculty') {
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit();
+}
+
+// Redirect admin users to admin dashboard
+if ($_SESSION['user_type'] === 'admin') {
+    header('Location: admin/index.php');
+    exit();
+}
+
+// Faculty users only from here
+if ($_SESSION['user_type'] !== 'faculty') {
     header('Location: login.php');
     exit();
 }

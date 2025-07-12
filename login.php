@@ -18,8 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Please enter both username and password';
     } else {
         try {
-            // Check users table for faculty
-            $sql = "SELECT user_id, user_name, password_hash, user_type FROM users WHERE username = ? AND user_type = 'faculty'";
+            // Check users table for any user type
+            $sql = "SELECT user_id, user_name, password_hash, user_type FROM users WHERE username = ?";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$username]);
             $user = $stmt->fetch();
@@ -30,7 +30,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_name'] = $user['user_name'];
                 $_SESSION['user_type'] = $user['user_type'];
                 
-                header('Location: index.php');
+                // Redirect based on user type
+                if ($user['user_type'] === 'admin') {
+                    header('Location: admin/index.php');
+                } else {
+                    header('Location: index.php');
+                }
                 exit();
             } else {
                 $error = 'Invalid username or password';
@@ -155,8 +160,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <div class="mt-4 text-center">
             <small class="text-muted">
-                Demo Credentials:<br>
-                Username: FAC001 | Password: password123
+                <strong>Demo Credentials:</strong><br>
+                <strong>Faculty:</strong> FAC001 | password123<br>
+                <strong>Admin:</strong> admin | password123
             </small>
         </div>
     </div>
